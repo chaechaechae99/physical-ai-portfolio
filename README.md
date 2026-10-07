@@ -1,22 +1,46 @@
-# 📝 강의노트: MediaPipe Hand Landmarker로 웹캠 손 인식하기
+# 📝 강의노트: MediaPipe Hand Landmarker로 나만의 제스처 만들기
 
 > 실습일: 2026-10-07
-> 주제: Google MediaPipe Hand Landmarker 모델을 받아 Python + 웹캠으로 손 랜드마크를 실시간 검출
+> 주제: MediaPipe Hand Landmarker로 웹캠 손 인식 → 나만의 제스처 학습 → 웹 이펙트로 배포
 > 참고 문서: [Hand landmarks detection guide (Google AI Edge)](https://developers.google.com/edge/mediapipe/solutions/vision/hand_landmarker)
+
+### 🌐 데모: https://chaechaechae99.github.io/hand-landmark/web/
+
+| 제스처 | 화면 효과 |
+| --- | --- |
+| **L** | 💗 `LOVE` 로고가 두근두근 |
+| **V** | ✌️ 브이 이모지가 쏟아짐 |
+| **E** | 🌈 `EEEEEEEEE` 글자가 화면을 가득 채움 |
+| **none** | "아무것도 없습니다." 표시 |
+
+> 카메라 권한을 허용해야 동작합니다. 영상은 브라우저 안에서만 처리되고 서버로 전송되지 않습니다.
 
 ---
 
-## 0. 오늘 한 일 요약
+## 0. 전체 흐름
+
+```
+[Part 1] 손 인식 기초
+  모델 다운로드 → 웹캠 실시간 손 랜드마크 (hand_webcam.py)
+
+[Part 2] 나만의 제스처
+  ① 데이터 수집 → ② 학습 → ③ 실시간 추론     (gesture_app.py, GUI)
+                         ↓
+  ④ 모델을 JSON으로 변환 → ⑤ 웹 버전 → ⑥ GitHub Pages 배포
+```
 
 | 단계 | 내용 | 결과 |
 | --- | --- | --- |
 | 1 | 공식 문서에서 모델(`hand_landmarker.task`) 다운로드 | ✅ 약 7.8MB |
-| 2 | `mediapipe` 라이브러리 설치 | ✅ mediapipe 1.1.0 |
-| 3 | 웹캠 실시간 손 인식 코드 작성 (`hand_webcam.py`) | ✅ |
-| 4 | 실행 → **한글 경로 오류** 발생 | 🔧 해결 |
-| 5 | 실행 → **화면 노이즈(지지직)** 발생 | 🔧 카메라 설정 보강 |
+| 2 | 웹캠 실시간 손 인식 (`hand_webcam.py`) | ✅ |
+| 3 | 트러블슈팅: 한글 경로 오류, 화면 노이즈 | 🔧 해결 |
+| 4 | 나만의 제스처 수집/학습/추론 (CLI → GUI) | ✅ L, V, E, none 4종 각 300개 |
+| 5 | 학습 모델을 웹으로 옮겨 제스처별 이펙트 | ✅ |
+| 6 | GitHub Pages 배포 | ✅ |
 
 ---
+
+# Part 1. 손 인식 기초
 
 ## 1. 개념 정리: Hand Landmarker란?
 
@@ -40,8 +64,6 @@
 17~20  PINKY  새끼   (MCP, PIP, DIP, TIP)
 ```
 
-> 💡 TIP(손가락 끝) 번호인 **4, 8, 12, 16, 20** 을 기억해두면 제스처 판별(예: 손가락 몇 개 폈는지)에 바로 쓸 수 있다.
-
 ### 실행 모드 (Running mode)
 
 | 모드 | 용도 | 호출 함수 |
@@ -61,90 +83,44 @@
 | `min_hand_presence_confidence` | 손이 있다고 판단할 최소 점수 | 0.5 |
 | `min_tracking_confidence` | 추적 유지 최소 신뢰도 | 0.5 |
 
----
-
 ## 2. 환경 준비
 
-### 실습 환경
 - Windows 11, Python 3.14
-- mediapipe 1.1.0, OpenCV 5.0.0
-
-### 라이브러리 설치
+- mediapipe 1.1.0, OpenCV 5.0.0, scikit-learn 1.9.1
 
 ```bash
-pip install mediapipe opencv-python
+pip install mediapipe opencv-python scikit-learn pillow
 ```
 
-### 모델 다운로드
-
-공식 문서 **Models** 섹션의 `HandLandmarker (full)` 링크 (float16):
+모델은 공식 문서 **Models** 섹션의 `HandLandmarker (full)` 링크에서 받는다 (이 저장소에 포함됨):
 
 ```
 https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task
 ```
 
-→ 받은 `hand_landmarker.task` 파일을 `hand_webcam.py`와 **같은 폴더**에 둔다.
-
----
-
-## 3. 코드 흐름 (`hand_webcam.py`)
+## 3. 웹캠 손 인식 코드 (`hand_webcam.py`)
 
 ```
 모델 로드 → 웹캠 열기 → [프레임 읽기 → 좌우반전 → BGR→RGB 변환
 → mp.Image 생성 → detect_for_video → 점/선 그리기 → 화면 출력] 반복 → q/ESC로 종료
 ```
 
-### 핵심 코드
-
-**① 모델 옵션 설정 & 생성**
-
-```python
-options = vision.HandLandmarkerOptions(
-    base_options=mp_python.BaseOptions(model_asset_buffer=model_data),
-    running_mode=vision.RunningMode.VIDEO,
-    num_hands=2,
-)
-with vision.HandLandmarker.create_from_options(options) as landmarker:
-    ...
-```
-
-**② 프레임마다 검출**
-
 ```python
 rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)          # OpenCV는 BGR, MediaPipe는 RGB
 mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
 timestamp_ms = int((time.monotonic() - start) * 1000)  # 증가하는 타임스탬프
 result = landmarker.detect_for_video(mp_image, timestamp_ms)
-```
 
-**③ 정규화 좌표 → 픽셀 좌표로 바꿔 그리기**
-
-```python
-h, w = frame.shape[:2]
+# 정규화 좌표(0~1) → 픽셀 좌표
 pts = [(int(lm.x * w), int(lm.y * h)) for lm in landmarks]
-for a, b in HAND_CONNECTIONS:
-    cv2.line(frame, pts[a], pts[b], (0, 255, 0), 2)
 ```
-
-### 화면에 표시되는 것
-- 손 21개 점(빨강) + 연결선(초록)
-- 왼손/오른손 라벨 + 신뢰도
-- 좌상단 FPS
-
----
-
-## 4. 실행 방법
 
 ```bash
 python hand_webcam.py        # 기본 카메라 (0번)
 python hand_webcam.py 1      # 카메라 번호 지정
 ```
 
-종료: 창 클릭 후 `q` 또는 `ESC`
-
----
-
-## 5. 🔧 트러블슈팅 기록
+## 4. 🔧 트러블슈팅
 
 ### 문제 1. 모델 파일을 못 엶 (한글 경로)
 
@@ -152,73 +128,183 @@ python hand_webcam.py 1      # 카메라 번호 지정
 RuntimeError: Unable to open file at C:\Users\...\바탕 화면\프로젝트1\hand_landmarker.task, errno=-1
 ```
 
-- **원인**: MediaPipe 내부(C++)가 한글 등 비 ASCII 문자가 들어간 경로를 제대로 열지 못함
-  - 처음 테스트 때는 상대 경로(`hand_landmarker.task`)라서 문제가 안 보였고, 절대 경로로 바꾸자 드러남
-- **해결**: 파이썬으로 파일을 직접 읽어서 **바이트로 전달** (`model_asset_path` → `model_asset_buffer`)
+- **원인**: MediaPipe 내부(C++)가 한글 등 비 ASCII 문자가 들어간 경로를 열지 못함
+  - 처음 테스트 때는 상대 경로라서 문제가 안 보였고, 절대 경로로 바꾸자 드러남
+- **해결**: 파이썬으로 파일을 직접 읽어서 **바이트로 전달**
 
 ```python
 with open(MODEL_PATH, "rb") as f:
     model_data = f.read()
-base_options = mp_python.BaseOptions(model_asset_buffer=model_data)
+base_options = mp_python.BaseOptions(model_asset_buffer=model_data)  # model_asset_path 대신
 ```
 
-> 📌 교훈: Windows에서 MediaPipe/OpenCV 등 C++ 기반 라이브러리를 쓸 땐 **경로에 한글을 피하거나**, 파일을 파이썬으로 읽어서 넘기자.
+> 📌 교훈: Windows에서 C++ 기반 라이브러리를 쓸 땐 **경로에 한글을 피하거나**, 파일을 파이썬으로 읽어서 넘기자.
 
 ### 문제 2. 화면이 지지직거리고 사람이 안 나옴
 
-- **확인한 것**
-  - 연결된 카메라 장치: `HP HD Camera`, `HP IR Camera`
-  - 카메라 번호별로 프레임을 하나씩 찍어서 비교
+- 연결된 카메라: `HP HD Camera`, `HP IR Camera` → 번호별로 프레임을 찍어 비교
 
-    | 번호 | 결과 |
-    | --- | --- |
-    | 0 | HP HD Camera, 640x480 → **정상 영상** |
-    | 1 | 가상 카메라, 검은 화면에 로딩 아이콘 |
-    | 2 | 열리지 않음 |
+  | 번호 | 결과 |
+  | --- | --- |
+  | 0 | HP HD Camera, 640x480 → **정상 영상** |
+  | 1 | 가상 카메라, 검은 화면에 로딩 아이콘 |
+  | 2 | 열리지 않음 |
 
-- **원인**: 확실히 특정하지 못함 (재확인 때 0번은 정상이었음)
-  - 의심: 처음 몇 프레임 깨짐, 포맷 협상 문제, **Zoom 등 다른 프로그램과 카메라 동시 사용**
-- **조치**
-  - 카메라 포맷(`YUY2`)과 해상도(640x480) 명시
-  - 처음 10프레임 버리기 (워밍업)
-  - 실행 인자로 카메라 번호 선택 가능하게 변경
+- **원인**: 확실히 특정하지 못함 (재확인 때 0번은 정상). 의심: 첫 프레임 깨짐, 포맷 협상, **Zoom과 카메라 동시 사용**
+- **조치**: 포맷(`YUY2`)·해상도(640x480) 명시, 처음 10프레임 버리기, 카메라 번호를 인자로 선택
 
-```python
-cap = cv2.VideoCapture(cam_index, cv2.CAP_DSHOW)
-cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"YUY2"))
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-for _ in range(10):
-    cap.read()
-```
+> 📌 교훈: 노트북엔 IR/가상 카메라가 같이 잡혀서 **0번이 항상 원하는 카메라가 아닐 수 있다.** 화상회의 중이면 비디오를 끄고 실행하자.
 
-> 📌 교훈: 노트북엔 IR 카메라, 가상 카메라 등이 같이 잡혀서 **0번이 항상 원하는 카메라가 아닐 수 있다.** 번호별로 찍어보고 확인하자. 화상회의 중이면 비디오를 끄고 실행하자.
-
-### 참고: 무시해도 되는 로그
-
-```
-W0000 ... inference_feedback_manager.cc:121] Feedback manager requires a model with a single signature inference...
-W0000 ... landmark_projection_calculator.cc:81] Using NORM_RECT without IMAGE_DIMENSIONS...
-```
-
-→ 경고일 뿐 동작에는 문제 없음.
-
-### 참고: OpenCV 패키지 중복
-
-mediapipe 설치 시 `opencv-contrib-python`이 같이 설치되어 `opencv-python`과 공존하게 됨. `cv2` import 오류가 나면 둘 중 하나를 제거:
-
-```bash
-pip uninstall opencv-python
-```
+### 참고
+- `inference_feedback_manager`, `landmark_projection_calculator` 경고 로그는 무시해도 됨
+- mediapipe 설치 시 `opencv-contrib-python`이 같이 깔림. `cv2` 오류가 나면 `pip uninstall opencv-python`
 
 ---
 
-## 6. 다음에 해볼 것
+# Part 2. 나만의 제스처 학습하기
 
-- [ ] 손가락 끝(4, 8, 12, 16, 20) 좌표로 **펼친 손가락 개수 세기**
-- [ ] 엄지-검지 거리로 **핀치 제스처** 인식
-- [ ] `LIVE_STREAM` 모드(비동기 콜백)로 바꿔서 FPS 비교
-- [ ] Gesture Recognizer와 결과 비교
+## 5. 아이디어: 랜드마크 + 작은 분류기
+
+MediaPipe에도 Gesture Recognizer 재학습 도구(Model Maker)가 있지만 **TensorFlow가 필요하고 Python 3.14를 지원하지 않는다.**
+그래서 이미 잘 동작하는 Hand Landmarker를 **특징 추출기**로 쓰고, 그 위에 작은 분류기를 직접 학습했다.
+
+```
+웹캠 프레임 ─▶ Hand Landmarker ─▶ 21점 × (x,y,z) = 63개 숫자 ─▶ 정규화 ─▶ MLP 분류기 ─▶ "L" / "V" / "E" / "none"
+```
+
+- 이미지가 아니라 **숫자 63개**만 학습하므로 제스처당 수백 개 샘플로 **몇 초 만에** 학습된다.
+
+### 특징 정규화 (가장 중요!)
+
+같은 손 모양이면 **위치·크기·왼오른손에 상관없이** 비슷한 숫자가 나오게 만든다. (`gesture_common.py`)
+
+```python
+pts = np.array([[lm.x, lm.y, lm.z] for lm in landmarks])
+pts -= pts[0]                                      # 1) 손목을 원점으로 → 위치 무관
+pts /= np.linalg.norm(pts[:, :2], axis=1).max()    # 2) 가장 먼 점까지 거리로 나눔 → 크기 무관
+if handedness == "Left":
+    pts[:, 0] *= -1                                # 3) 왼손은 x 뒤집기 → 양손 공통
+features = pts.flatten()                           # 63차원
+```
+
+### 분류기
+
+```python
+make_pipeline(
+    StandardScaler(),                                         # 특징별 평균0, 표준편차1
+    MLPClassifier(hidden_layer_sizes=(128, 64), early_stopping=True),
+)
+```
+
+- 입력 63 → 은닉 128 → 은닉 64 → 출력(클래스 수), 활성화 함수 ReLU, 출력 softmax
+- 80% 학습 / 20% 테스트로 정확도와 **혼동 행렬**을 확인한 뒤, 전체 데이터로 다시 학습해서 저장
+
+## 6. GUI 앱 (`gesture_app.py`)
+
+처음엔 수집/학습/추론을 CLI 스크립트로 만들었는데 불편해서 **tkinter GUI** 하나로 합쳤다.
+
+```bash
+python gesture_app.py
+```
+
+| 영역 | 기능 |
+| --- | --- |
+| 왼쪽 | 웹캠 영상 + 손 랜드마크 + 인식 결과 |
+| ① 데이터 수집 | 제스처 이름 입력 → **[● 녹화 시작]** 또는 **Space** → 3초 카운트다운 후 자동 녹화. 목록에서 제스처별 샘플 수 확인/삭제 |
+| ② 학습 | **[학습 시작]** → 정확도·혼동 행렬 로그 → 끝나면 자동으로 추론 켜짐 |
+| ③ 실시간 추론 | 손 위에 제스처 이름 + 신뢰도, 최소 신뢰도 슬라이더 |
+
+### 수집 꿀팁
+- 녹화 중 손 모양은 유지하고 **거리·각도·양손을 조금씩 바꿔가며** 찍기 → 인식이 훨씬 잘 됨
+- `none`(아무 손 모양) 클래스를 꼭 만들기 → 엉뚱한 손 모양을 억지로 L/V/E로 맞추는 오인식이 줄어듦
+- 헷갈리는 제스처는 혼동 행렬을 보고 그 제스처만 더 수집
+
+### CLI 버전 (참고)
+
+```bash
+python collect_gesture.py L --count 300   # 수집 (SPACE 녹화)
+python train_gesture.py                   # 학습
+python infer_gesture.py --threshold 0.7   # 추론
+```
+
+### 구현 포인트
+- 학습은 **별도 스레드**에서 실행하고 로그는 `queue`로 UI에 전달 → 학습 중에도 영상이 멈추지 않음
+- 영상 루프는 `root.after()`로 주기적으로 호출 (tkinter는 메인 스레드에서만 UI 갱신 가능)
+- 영상 위 글씨는 OpenCV `putText`라 한글이 안 나옴 → 제스처 이름은 영어로
+
+---
+
+# Part 3. 웹 버전 & 배포
+
+## 7. 파이썬 모델을 웹으로 옮기기
+
+브라우저에선 scikit-learn을 쓸 수 없으므로 **가중치를 JSON으로 내보내고, 같은 계산을 JS로 직접 구현**했다.
+
+```bash
+python export_web_model.py    # models/gesture_classifier.joblib → web/gesture_model.json
+```
+
+```js
+// StandardScaler
+let h = feat.map((v, i) => (v - model.mean[i]) / model.scale[i]);
+// MLP: 마지막 층 전까지 ReLU
+for (const layer of model.layers) h = relu(h · W + b);
+// 마지막 층: softmax → 클래스별 확률
+```
+
+- 검증: 같은 입력에 대해 **파이썬 `predict_proba`와 JS 결과 차이가 1e-17** → 완전히 동일
+
+### 학습 때와 입력 조건 맞추기 ⚠️
+
+웹에서도 파이썬과 **똑같은 조건의 영상**을 넣어야 정확도가 유지된다.
+
+| 조건 | 파이썬 (학습 때) | 웹 |
+| --- | --- | --- |
+| 좌우반전 | `cv2.flip(frame, 1)` 후 검출 | 캔버스에 반전해서 그린 뒤 검출 |
+| 화면 비율 | 640x480 (4:3) | 카메라 영상을 **가운데 4:3으로 크롭** |
+| 손 랜드마크 | mediapipe Python | `@mediapipe/tasks-vision` (JS, 같은 모델 파일) |
+
+> 📌 랜드마크 x, y는 각각 가로/세로로 나눈 비율이라 **화면 비율이 바뀌면 손 모양 숫자가 달라진다.**
+> 16:9 영상을 그대로 넣으면 학습 때와 다른 숫자가 나와서 인식이 떨어진다.
+
+## 8. 제스처별 이펙트 (`web/index.html`)
+
+| 제스처 | 이펙트 | 구현 |
+| --- | --- | --- |
+| **L** | 흰 카드에 분홍 `LOVE` 로고, 두근두근 | CSS `transform` 팝업 + `@keyframes beat` |
+| **V** | 큰 ✌️ 흔들기 + 작은 ✌️가 아래서 계속 솟아오름 | 90ms마다 이모지 요소 생성, 애니메이션 끝나면 삭제 |
+| **E** | 무지개색 `EEEE…` 줄이 좌우로 흐르고 가운데 네온 `EEEEEEEEE`가 떨림 | 줄마다 반대 방향 `translateX` 무한 스크롤 |
+| **none** | 하단에 "아무것도 없습니다." | |
+
+- **흔들림 방지**: 최근 6프레임 확률을 평균 내서 판단 → 이펙트가 깜빡이지 않음
+- **민감도 슬라이더**: 최고 확률이 이 값보다 낮으면 `?` (이펙트 없음)
+- 처음 L은 고딕체(Fraktur) `LOVE`였는데 **O가 D처럼 보여 "LDVE"로 읽혀서** 둥근 필기체(Pacifico)로 변경
+
+### 로컬 실행
+
+카메라(`getUserMedia`)는 `file://`에선 안 되고 **localhost 또는 https** 에서만 동작한다.
+
+```bash
+python -m http.server 8000
+# 브라우저에서 http://localhost:8000/web/
+```
+
+## 9. GitHub Pages 배포
+
+- 저장소 **Settings → Pages → Source: `main` 브랜치 `/ (root)`**
+- GitHub Pages는 **https** 라서 카메라 권한이 정상 동작
+- 루트 `index.html`은 `web/`으로 이동시키는 리다이렉트
+- `web/index.html`은 모델 파일을 `../hand_landmarker.task`로 불러오므로 저장소 루트에 모델이 있어야 함
+- 다시 학습했다면: `python export_web_model.py` → `web/gesture_model.json` 커밋 → 자동 재배포
+
+---
+
+## 10. 다음에 해볼 것
+
+- [ ] 양손 제스처 (두 손 랜드마크를 합쳐 126차원)
+- [ ] 정지 자세가 아닌 **움직임 제스처** (최근 N프레임을 묶어 시퀀스로 학습)
+- [ ] 웹에서 바로 수집·학습까지 (TensorFlow.js)
+- [ ] 이펙트에 사운드 추가
 
 ---
 
@@ -226,7 +312,19 @@ pip uninstall opencv-python
 
 ```
 .
-├── hand_webcam.py         # 웹캠 실시간 손 인식 코드
-├── hand_landmarker.task   # Hand Landmarker 모델 (float16)
-└── README.md              # 강의노트 (이 문서)
+├── hand_landmarker.task     # MediaPipe 손 랜드마크 모델 (float16)
+├── hand_webcam.py           # [Part 1] 웹캠 손 인식
+├── gesture_common.py        # [Part 2] 공통: 모델/카메라/특징 정규화/그리기
+├── gesture_app.py           # [Part 2] GUI: 수집 → 학습 → 추론
+├── collect_gesture.py       # [Part 2] CLI 수집
+├── train_gesture.py         # [Part 2] 학습 (GUI도 이 함수 사용)
+├── infer_gesture.py         # [Part 2] CLI 추론
+├── export_web_model.py      # [Part 3] 학습 모델 → web/gesture_model.json
+├── index.html               # GitHub Pages 루트 → web/ 리다이렉트
+└── web/
+    ├── index.html           # [Part 3] 제스처 이펙트 웹앱
+    └── gesture_model.json   # 웹용 분류기 가중치
 ```
+
+> `data/`(수집한 랜드마크 CSV)와 `models/`(로컬 학습 모델)는 `.gitignore`로 제외했다.
+> 직접 해보려면 `gesture_app.py`로 수집·학습 후 `export_web_model.py`를 실행하면 된다.
