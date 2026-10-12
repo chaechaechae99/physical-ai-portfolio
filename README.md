@@ -1,36 +1,16 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 운결 (fortune-service/web)
 
-## Getting Started
-
-First, run the development server:
+Next.js 15 (App Router) + TypeScript + Tailwind v4. 계획서는 `../PLAN.md`.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # http://localhost:3000
+npm run build      # 프로덕션 빌드
+npm run lint
+npm run test:saju  # 간이 만세력을 ../data/saju_answers.json 정답셋과 비교
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `lib/saju/simple.ts` — 간이 만세력 (양력만, 절기는 고정 날짜 근사). M4에서 정식 엔진으로 교체 예정
+- `data/dreams.json`, `data/tarot.json` — 자체 작성 콘텐츠
+- `public/tarot/` — Rider-Waite 타로 (1909, 퍼블릭 도메인)
+- 생년월일·궁합 상대·꿈 일기·테마는 브라우저 localStorage에만 저장 (서버 저장 없음)

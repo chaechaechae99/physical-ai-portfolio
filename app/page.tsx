@@ -1,103 +1,72 @@
-import Image from "next/image";
+import Link from "next/link";
+import { DreamSearchBand } from "@/components/DreamSearchBand";
+import { Icon, type IconName } from "@/components/Icons";
+
+const BIG: { href: string; title: string; desc: string; icon: IconName; span: string }[] = [
+  { href: "/fortune/today", title: "오늘의 운세", desc: "오늘의 총운과 애정, 일, 건강을 점수와 함께 알려드려요.", icon: "sun", span: "span3" },
+  { href: "/fortune/match", title: "사주 궁합", desc: "두 사람의 오행이 서로 살리는지, 부딪히는지 확인해요.", icon: "heart", span: "span3" },
+  { href: "/fortune/wealth", title: "재물운", desc: "올해 돈의 흐름과 피해야 할 지출.", icon: "coin", span: "span2" },
+  { href: "/fortune/life", title: "평생 운세", desc: "타고난 성격과 10년 단위 대운의 흐름.", icon: "yin", span: "span2" },
+  { href: "/fortune/year", title: "신년 운세", desc: "열두 달의 흐름과 올해의 키워드 세 가지.", icon: "year", span: "span2" },
+];
+
+const SMALL_FORTUNE: { href: string; title: string; desc: string; icon: IconName }[] = [
+  { href: "/fortune/week", title: "주간 운세", desc: "요일별 점수와 한 줄 조언", icon: "week" },
+  { href: "/fortune/month", title: "월간 운세", desc: "이번 달 길일과 주의일", icon: "month" },
+];
+
+const MYSTIC: { href: string; title: string; desc: string; icon: IconName }[] = [
+  { href: "/dream", title: "꿈해몽", desc: "키워드·카테고리 검색", icon: "moon" },
+  { href: "/dream/diary", title: "꿈 일기장", desc: "꾼 꿈을 적고 해몽 모아보기", icon: "diary" },
+  { href: "/tarot", title: "오늘의 타로", desc: "카드 3장과 종합 해설", icon: "tarot" },
+  { href: "/zodiac", title: "별자리 운세", desc: "12별자리 오늘의 흐름", icon: "star" },
+  { href: "/zodiac-animal", title: "띠별 운세", desc: "내 띠와 출생년도별 한마디", icon: "tti" },
+  { href: "/past-life", title: "나의 전생 찾기", desc: "전생에 나는 누구였을까", icon: "crown" },
+  { href: "/spouse", title: "미래 배우자", desc: "나는 누구랑 결혼했을까?", icon: "ring" },
+  { href: "/lotto", title: "로또 번호 뽑기", desc: "추첨기로 랜덤 뽑기", icon: "lotto" },
+];
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <>
+      <section>
+        <DreamSearchBand />
+      </section>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      <section>
+        <div className="sec-h"><h2>운세</h2></div>
+        <div className="big">
+          {BIG.map((c) => (
+            <Link key={c.href} href={c.href} className={`card ${c.span}`}>
+              <div>
+                <h3>{c.title}</h3>
+                <p>{c.desc}</p>
+              </div>
+              <Icon name={c.icon} />
+            </Link>
+          ))}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+        <div className="small two">
+          {SMALL_FORTUNE.map((c) => (
+            <Link key={c.href} href={c.href} className="scard">
+              <div><b>{c.title}</b><span>{c.desc}</span></div>
+              <Icon name={c.icon} />
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <div className="sec-h"><h2>신비</h2></div>
+        <div className="small">
+          {MYSTIC.map((c) => (
+            <Link key={c.href} href={c.href} className="scard">
+              <div><b>{c.title}</b><span>{c.desc}</span></div>
+              <Icon name={c.icon} />
+            </Link>
+          ))}
+        </div>
+      </section>
+    </>
   );
 }
