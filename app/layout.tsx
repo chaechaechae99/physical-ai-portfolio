@@ -41,7 +41,15 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           </header>
           <main className="wrap">{children}</main>
           <footer>
-            <div className="wrap">운결 · 공부용 프로젝트 · 모든 운세는 재미로 봐주세요.</div>
+            <div className="wrap" style={{ display: "grid", gap: 6 }}>
+              <p style={{ margin: 0 }}>
+                운결의 모든 결과는 재미를 위한 콘텐츠이며 의학·투자·법률 등 전문적인 조언을 대신하지 않아요.
+                결과를 근거로 한 판단과 그로 인한 결과는 이용자 본인에게 있어요.
+              </p>
+              <p style={{ margin: 0 }}>
+                운결 · 공부용 개인 프로젝트 · <Link href="/terms" style={{ color: "inherit" }}>이용 안내 · 출처</Link>
+              </p>
+            </div>
           </footer>
         </ProfileProvider>
       </body>
