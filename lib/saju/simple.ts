@@ -1,6 +1,7 @@
 // 간이 만세력: 양력 생년월일 → 사주팔자, 오행, 띠, 별자리, 대운.
-// 절기는 고정 날짜로 근사한다(경계일 당일은 틀릴 수 있음). 정식 엔진은 M4에서 교체.
-// 이 파일은 다른 모듈을 import하지 않는다(scripts/test-saju.ts가 node로 직접 실행).
+// 절기는 고정 날짜로 근사한다(경계일 당일은 틀릴 수 있음).
+// 정식 엔진(lib/saju/engine.ts, manseryeok)이 registerEngine()으로 등록되면 saju()/daeun()은 그쪽을 쓴다.
+// 이 파일은 다른 모듈을 import하지 않는다(엔진 실패 시 대체 계산용).
 
 export const GAN = "甲乙丙丁戊己庚辛壬癸";
 export const JI = "子丑寅卯辰巳午未申酉戌亥";
@@ -21,7 +22,7 @@ export const HOUR_TXT = [
   "申 15:31~17:30", "酉 17:31~19:30", "戌 19:31~21:30", "亥 21:31~23:30",
   "夜子 23:31~24:00",
 ];
-const SEASON = ["겨울", "겨울", "봄", "봄", "봄", "여름", "여름", "여름", "가을", "가을", "가을", "겨울"];
+export const SEASON_OF = ["겨울", "겨울", "봄", "봄", "봄", "여름", "여름", "여름", "가을", "가을", "가을", "겨울"];
 
 export const TTI: [string, string][] = [
   ["쥐", "子"], ["소", "丑"], ["호랑이", "寅"], ["토끼", "卯"], ["용", "辰"], ["뱀", "巳"],
@@ -93,7 +94,12 @@ export const signOf = (m: number, d: number) => {
 export const ttiOfYear = (y: number) => mod(y - 2020, 12);
 
 export type Gender = "M" | "F";
-export type Profile = { gender: Gender; date: string; hour: number };
+/** S 양력, L 음력(평달), Z 음력(윤달) */
+export type Calendar = "S" | "L" | "Z";
+/** date는 cal 기준 날짜(음력이면 음력 날짜). cal이 없으면 양력 */
+export type Profile = { gender: Gender; date: string; hour: number; cal?: Calendar };
+
+export type TenGodPair = { stem: string; branch: string };
 
 export type Saju = {
   p: Profile;
@@ -113,6 +119,16 @@ export type Saju = {
   season: string;
   key: string;
   label: string;
+  /** 입력 달력 (없으면 양력) */
+  cal?: Calendar;
+  /** 양력 날짜 YYYY-MM-DD (음력 입력이면 변환된 날짜) */
+  solar?: string;
+  /** 계산 엔진 */
+  engine?: "manseryeok" | "simple";
+  /** 십신 (정식 엔진만) — 년·월·일·시 */
+  tenGods?: Record<"year" | "month" | "day" | "hour", TenGodPair | null>;
+  /** 대운 (정식 엔진이 계산한 값) */
+  daeunInfo?: Daeun;
 };
 
 export const isValidProfile = (p: unknown): p is Profile => {
@@ -121,11 +137,32 @@ export const isValidProfile = (p: unknown): p is Profile => {
   return (
     typeof o.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(o.date) &&
     (o.gender === "M" || o.gender === "F") &&
+    (o.cal === undefined || o.cal === "S" || o.cal === "L" || o.cal === "Z") &&
     Number.isInteger(o.hour) && (o.hour as number) >= -1 && (o.hour as number) <= 12
   );
 };
 
+type Engine = (p: Profile) => Saju;
+let engine: Engine | null = null;
+/** 정식 엔진 등록 (lib/saju/engine.ts가 import될 때 호출) */
+export const registerEngine = (e: Engine) => {
+  engine = e;
+};
+
+/** 사주 계산: 정식 엔진이 있으면 그것을, 실패하거나 없으면 간이 계산 */
 export function saju(p: Profile): Saju {
+  if (engine) {
+    try {
+      return engine(p);
+    } catch {
+      /* 간이 계산으로 대체 */
+    }
+  }
+  return simpleSaju(p);
+}
+
+/** 간이 계산 (양력 전용 — 음력 입력은 그대로 양력으로 취급) */
+export function simpleSaju(p: Profile): Saju {
   const [y, m, d] = p.date.split("-").map(Number);
   const Y = yearP(y, m, d);
   const M = monthP(y, m, d);
@@ -158,9 +195,12 @@ export function saju(p: Profile): Saju {
     tti: TTI[Y.j][0],
     ttiIdx: Y.j,
     sign: signOf(m, d),
-    season: SEASON[M.j],
-    key: `${p.date}|${p.hour}|${p.gender}`,
+    season: SEASON_OF[M.j],
+    key: `${p.cal ?? "S"}|${p.date}|${p.hour}|${p.gender}`,
     label: `${D.s}일주 · ${TTI[Y.j][0]}띠`,
+    cal: p.cal ?? "S",
+    solar: p.date,
+    engine: "simple",
   };
 }
 
@@ -168,6 +208,7 @@ export type Daeun = { start: number; fwd: boolean; list: (Pillar & { age: number
 
 /** 대운: 양남음녀 순행, 음남양녀 역행. 시작 나이 = 가까운 절기까지 날수 / 3 */
 export function daeun(s: Saju): Daeun {
+  if (s.daeunInfo) return s.daeunInfo;
   const fwd = (s.Y.g % 2 === 0) === (s.p.gender === "M");
   const bd = Date.UTC(s.y, s.m - 1, s.d);
   let best: number | null = null;

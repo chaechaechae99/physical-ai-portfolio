@@ -3,8 +3,10 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Loading, PageTitle } from "@/components/ui";
-import { LUCK_LABEL, dreamKey, matchDreams } from "@/lib/dream";
-import { daysAgo, store, todayStr } from "@/lib/util";
+import { dreamKey, matchDreams } from "@/lib/dream";
+import { interpretDream } from "@/lib/dream/interpret";
+import { daysAgo, eulReul, store, todayStr } from "@/lib/util";
+import { DreamReading } from "../DreamReading";
 
 type Entry = { id: string; date: string; text: string; mood: string; tag: "" | "good" | "bad"; ex?: boolean };
 
@@ -25,10 +27,11 @@ const examples = (): Entry[] => [
 export function Diary() {
   const params = useSearchParams();
   const prefill = params.get("prefill");
+  const raw = params.get("raw") === "1";
   const [entries, setEntries] = useState<Entry[]>([]);
   const [ready, setReady] = useState(false);
   const [date, setDate] = useState("");
-  const [text, setText] = useState(prefill ? `${prefill}을 꿨어요. ` : "");
+  const [text, setText] = useState(prefill ? (raw ? prefill : `${prefill}${eulReul(prefill)} 꿨어요. `) : "");
   const [mood, setMood] = useState(MOODS[0]);
   const [tag, setTag] = useState<Entry["tag"]>("");
   const [open, setOpen] = useState<Record<string, boolean>>({});
@@ -171,7 +174,7 @@ export function Diary() {
 
       <div className="dlist" style={{ marginTop: 0 }}>
         {sorted.map((e) => {
-          const m = open[e.id] ? matchDreams(e.text) : [];
+          const reading = open[e.id] ? interpretDream(e.text) : null;
           return (
             <article key={e.id} className="ditem">
               <div className="meta">
@@ -189,16 +192,7 @@ export function Diary() {
                   <button className="btn ghost sm" type="button" onClick={() => save(entries.filter((x) => x.id !== e.id), "기록을 지웠어요.")}>삭제</button>
                 )}
               </div>
-              {open[e.id] && (
-                <div className="match-box">
-                  {m.length ? m.map((d) => (
-                    <div key={d.id}>
-                      <b>{d.title}</b> <span className={`luck ${d.luck}`}>{LUCK_LABEL[d.luck]}</span>
-                      <p>{d.text}</p>
-                    </div>
-                  )) : <p>사전에서 맞는 꿈을 찾지 못했어요. AI 해몽이 열리면 꿈 내용 전체를 읽고 풀어 드려요.</p>}
-                </div>
-              )}
+              {reading && <DreamReading r={reading} compact />}
             </article>
           );
         })}

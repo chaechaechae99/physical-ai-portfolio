@@ -3,12 +3,17 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { PageTitle } from "@/components/ui";
+import { ShareCard } from "@/components/share/ShareCard";
 import {
   POSITIONS, TOPICS, TREND_LABEL, keywordsOf, readSpread, shuffleDeck, topicLine,
   type Drawn, type Topic,
 } from "@/lib/tarot";
 
 const img = (id: number) => `/tarot/${String(id).padStart(2, "0")}.jpg`;
+
+/** 문장 단위로 앞에서 n개만 */
+const firstSentences = (s: string, n: number) =>
+  (s.match(/[^.!?]+[.!?]+/g) ?? [s]).slice(0, n).join(" ").trim();
 
 export function Tarot() {
   const [deck, setDeck] = useState<Drawn[]>([]);
@@ -131,6 +136,25 @@ export function Tarot() {
             <p style={{ margin: "0 0 12px" }}>{reading.advice}</p>
             <div className="kw3">{reading.keywords.map((k) => <span key={k}>#{k}</span>)}</div>
           </div>
+
+          <ShareCard
+            name="타로"
+            spec={{
+              eyebrow: `오늘의 타로 · ${TOPICS.find((t) => t.id === topic)?.label ?? ""}`,
+              title: question.trim() ? `“${question.trim()}”` : "오늘의 세 장",
+              images: spread.map((d, k) => ({
+                src: img(d.card.id),
+                reversed: d.reversed,
+                label: `${POSITIONS[k]} · ${d.card.name}${d.reversed ? " (역)" : ""}`,
+              })),
+              marker: `${reading.trend === "up" ? "↗" : reading.trend === "down" ? "↘" : "→"} 흐름 ${TREND_LABEL[reading.trend]}`,
+              rows: [
+                { label: "종합 해설", text: firstSentences(reading.summary.join(" "), 2) },
+                ...(reading.answer ? [{ label: "답", text: reading.answer }] : []),
+              ],
+              highlight: reading.advice,
+            }}
+          />
 
           <div className="ctrl"><button type="button" className="btn ghost" onClick={reset}>다시 섞기</button></div>
         </div>
