@@ -1,0 +1,39 @@
+# L01 전기란 무엇인가 — Flow 이미지 목록
+# status: todo → done (visuals/images/L01/<id>.png 저장 후). 선택본 출처: candidates/L01
+# review: required → 사람이 정확성 검수 필요 (회로·과학 구조)
+
+mascot:
+  aspect: "1:1"
+  status: done
+  prompt: >-
+    A cute mascot character of an electron: a small glowing sky-blue sphere
+    with big friendly eyes, rosy cheeks, tiny arms and legs, a small
+    lightning-bolt shaped hair tuft on top, waving hello, full body.
+
+everyday_electricity:
+  aspect: "16:9"
+  status: done
+  prompt: >-
+    A cozy living room at evening, cutaway view, showing many things that
+    use electricity: a glowing floor lamp, a TV, a smartphone charging on a
+    table, a refrigerator in the kitchen corner, a wall outlet with a plug.
+    Soft yellow glow lines hint at electricity flowing in the walls.
+
+atom:
+  aspect: "1:1"
+  status: done
+  review: required   # 선택본(atom_b): 양성자·전자 개수 불일치 — 슬라이드 문구는 개수를 말하지 않으므로 허용
+  prompt: >-
+    A simple friendly model of an atom: a small nucleus made of a cluster of
+    coral-red balls and light gray balls in the center, and three small
+    glowing sky-blue balls orbiting on thin elliptical rings around it.
+    Clear and uncluttered, like a toy science model.
+
+static_balloon:
+  aspect: "16:9"
+  status: done
+  prompt: >-
+    A smiling child holding a pastel pink balloon just above their head after
+    rubbing it on their hair; the child's hair strands stand up and stick
+    toward the balloon. Small sparkles between the hair and balloon.
+    Playful science-class mood.

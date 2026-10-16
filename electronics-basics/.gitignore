@@ -1,0 +1,6 @@
+generated/
+output/
+__pycache__/
+visuals/candidates/
+tmp/
+media/

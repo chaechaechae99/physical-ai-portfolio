@@ -1,0 +1,28 @@
+# 그림(matplotlib)과 슬라이드(python-pptx)가 함께 쓰는 디자인 설정
+slide:
+  width_in: 13.333   # 16:9
+  height_in: 7.5
+  margin_in: 0.6
+
+font:
+  family: "Malgun Gothic"     # Windows 기본 한글 폰트
+  title_pt: 36
+  body_pt: 24
+  caption_pt: 20
+  small_pt: 14
+
+colors:                       # 의미가 있는 색 — docs/style-guide.md 참고
+  bg: "FFFFFF"
+  text: "1F2937"
+  muted: "6B7280"
+  primary: "2563EB"           # 강조·제목 바
+  accent: "F59E0B"            # 전류 / 에너지 (노랑-주황)
+  positive: "DC2626"          # + 극
+  negative: "2563EB"          # − 극 / 전자
+  water: "38BDF8"             # 물 비유
+  wire: "374151"
+  light: "F3F4F6"             # 카드 배경
+  success: "16A34A"
+
+figure:
+  dpi: 300

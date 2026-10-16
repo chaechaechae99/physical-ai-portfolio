@@ -1,0 +1,36 @@
+# L02 전압·전류·저항 — Flow 이미지 목록 (물 비유)
+# status: todo → done (visuals/images/L02/<id>.png 저장 후). 선택본 출처: candidates/L02
+
+water_tower:
+  aspect: "16:9"
+  status: todo
+  prompt: >-
+    A tall water tower tank on the left connected by a long horizontal pipe
+    to a faucet on the right, water gushing strongly out of the faucet into a
+    bucket. Side view, simple and clear, like a toy model of water pressure.
+
+current_pipe:
+  aspect: "16:9"
+  status: todo
+  prompt: >-
+    A wide transparent glass pipe seen from the side, filled with many tiny
+    cute sky-blue round droplet characters marching in a neat line from left
+    to right through the pipe, like a parade. Simple and clear.
+
+narrow_pipe:
+  aspect: "16:9"
+  status: todo
+  prompt: >-
+    A transparent glass pipe that becomes very narrow in the middle like an
+    hourglass neck; tiny cute sky-blue round droplet characters crowd and
+    squeeze to pass through the narrow part one by one, looking busy.
+    Side view, simple and clear.
+
+everyday_voltages:
+  aspect: "16:9"
+  status: todo
+  prompt: >-
+    Three objects standing side by side on a plain surface, from small to
+    large: a single AA battery, a smartphone charger adapter with its cable,
+    and a white wall power outlet panel with a plug inserted. Evenly spaced,
+    product showcase style.

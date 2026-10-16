@@ -1,0 +1,68 @@
+# L01 전기란 무엇인가 (맛보기 버전)
+# 그림 참조: image → visuals/images/<id>.png, video → generated/animations/<id>.mp4, chart → generated/charts/<id>.png
+# labels: 이미지 위에 얹는 글자. x, y 는 이미지 안 비율 위치(0~1)
+
+number: 1
+title: "전기란 무엇인가"
+
+slides:
+  - layout: title
+    image: L01/mascot
+    subtitle: "오늘의 안내자, 전자 친구와 함께 시작해요"
+
+  - layout: goals
+    title: "오늘 배울 것"
+    items:
+      - "우리 주변의\n전기 찾아보기"
+      - "전기의 주인공\n'전자' 만나기"
+      - "전기가 흐른다는\n것은 무엇일까?"
+
+  - layout: big_figure
+    title: "전기는 어디에나 있어요"
+    image: L01/everyday_electricity
+    caption: "불을 켜고, 폰을 충전하고, 냉장고를 돌리는 힘 — 모두 전기!"
+    notes: "수강생에게 오늘 아침부터 지금까지 전기를 쓴 물건을 3개씩 말해보게 한다."
+
+  - layout: figure_text
+    title: "모든 물질은 '원자'로 되어 있어요"
+    image: L01/atom
+    labels:
+      - {text: "원자핵 (+)", x: 0.50, y: 0.82, color: positive}
+      - {text: "전자 (−)", x: 0.74, y: 0.20, color: negative}
+    bullets:
+      - "가운데: 원자핵 (+ 전기)"
+      - "주위를 도는 작은 알갱이: 전자 (− 전기)"
+      - "전자는 원자를 떠나 이동할 수 있어요"
+    notes: "원자는 너무 작아서 머리카락 굵기에 약 50만 개가 들어간다."
+
+  - layout: figure_text
+    title: "풍선을 머리에 문지르면?"
+    image: L01/static_balloon
+    labels:
+      - {text: "풍선 (−)", x: 0.64, y: 0.12, color: negative}
+      - {text: "머리카락 (+)", x: 0.66, y: 0.42, color: positive}
+    bullets:
+      - "머리카락의 전자가 풍선으로 옮겨가요"
+      - "풍선은 (−), 머리카락은 (+)"
+      - "서로 다른 전기는 끌어당겨요 → 정전기!"
+    notes: "겨울철 문고리 '찌릿' 경험을 물어보며 연결한다."
+
+  - layout: video
+    title: "전기가 '흐른다'는 것"
+    video: L01/electron_flow
+    caption: "전자가 한 방향으로 줄지어 이동하는 것 = 전류"
+    notes: "영상을 클릭하면 재생. 처음엔 전자가 제자리에서 꼼지락거리다 전지를 연결하면 한 방향으로 흐른다."
+
+  - layout: quiz
+    title: "퀴즈!"
+    question: "전기가 흐를 때, 실제로 움직이는 것은?"
+    choices: ["원자핵", "전자", "공기"]
+    answer: 2
+
+  - layout: summary
+    title: "오늘의 정리"
+    image: L01/mascot
+    points:
+      - "전기는 우리 생활 어디에나 있다"
+      - "물질 속 '전자'가 전기의 주인공"
+      - "전자가 한 방향으로 흐르면 = 전류"

@@ -1,0 +1,5 @@
+python-pptx>=1.0
+matplotlib>=3.9
+manim>=0.19
+manimpango==0.6.1        # 0.7.0의 DLL이 Windows 스마트 앱 컨트롤에 차단됨
+pyyaml>=6.0

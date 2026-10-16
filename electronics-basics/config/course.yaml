@@ -1,0 +1,15 @@
+course_title: "전자전기 기초"
+subtitle: "아무것도 몰라도 괜찮아요"
+instructor: ""
+
+lectures:
+  - {id: L01, dir: L01_what_is_electricity,        title: "전기란 무엇인가"}
+  - {id: L02, dir: L02_voltage_current_resistance, title: "전압·전류·저항"}
+  - {id: L03, dir: L03_ohms_law_power,             title: "옴의 법칙과 전력"}
+  - {id: L04, dir: L04_series_parallel,            title: "직렬·병렬 회로"}
+  - {id: L05, dir: L05_dc_ac,                      title: "직류와 교류"}
+  - {id: L06, dir: L06_electromagnetism,           title: "전기와 자기"}
+  - {id: L07, dir: L07_capacitor_inductor,         title: "커패시터와 인덕터"}
+  - {id: L08, dir: L08_semiconductor_diode,        title: "반도체·다이오드·LED"}
+  - {id: L09, dir: L09_transistor,                 title: "트랜지스터"}
+  - {id: L10, dir: L10_digital,                    title: "디지털의 시작"}

@@ -1,0 +1,10 @@
+# 모든 Flow 프롬프트 뒤에 붙는 공통 스타일. 바꾸면 이후 생성 이미지 전체 톤이 바뀐다.
+style: >-
+  Soft 3D clay-style illustration, rounded friendly shapes, pastel palette
+  (sky blue, warm yellow, soft coral, mint), clean plain white background,
+  soft studio lighting with gentle shadows, educational and cute,
+  centered composition with empty margin around the subject.
+  Absolutely no text, no letters, no numbers, no symbols, no watermark.
+
+defaults:
+  aspect: "16:9"      # 슬라이드 반쪽이면 "1:1"
