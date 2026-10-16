@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>두더지 잡기</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    min-height: 100vh;
+    font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    background: linear-gradient(#8fd3ff 0%, #c9ecff 45%, #7cc65a 45%, #5aa83d 100%);
+    display: flex; flex-direction: column; align-items: center;
+    padding: 16px; user-select: none; color: #3b2a1a;
+  }
+  h1 { font-size: clamp(28px, 7vw, 48px); color: #fff; text-shadow: 3px 3px 0 #6b4423; margin: 8px 0 12px; }
+  .hud {
+    display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 16px;
+  }
+  .hud div {
+    background: #fff8e7; border: 3px solid #6b4423; border-radius: 12px;
+    padding: 6px 14px; font-weight: 700; font-size: 18px; min-width: 100px; text-align: center;
+  }
+  .board {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(10px, 3vw, 24px);
+    width: min(92vw, 480px);
+    cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><text y='40' font-size='40'>🔨</text></svg>") 10 30, pointer;
+  }
+  .hole {
+    position: relative; aspect-ratio: 1; overflow: hidden;
+    border-radius: 50% 50% 45% 45%;
+  }
+  .hole::after {
+    content: ""; position: absolute; left: 5%; right: 5%; bottom: 4%; height: 32%;
+    background: radial-gradient(ellipse at center, #2b1a0e 0%, #4a2e17 60%, #6b4423 100%);
+    border-radius: 50%; z-index: 1;
+  }
+  .mole {
+    position: absolute; left: 50%; bottom: -80%; width: 70%; height: 80%;
+    transform: translateX(-50%); transition: bottom 0.15s ease-out; z-index: 2;
+    font-size: clamp(40px, 13vw, 80px); display: flex; justify-content: center; align-items: flex-start;
+  }
+  .hole::before {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 20%;
+    background: #5aa83d; z-index: 3; border-radius: 0 0 50% 50%;
+  }
+  .mole .body {
+    width: 100%; height: 100%; background: #8b5a2b; border-radius: 50% 50% 20% 20%;
+    position: relative; border: 3px solid #5a3a1a;
+  }
+  .mole .eye { position: absolute; top: 25%; width: 12%; height: 14%; background: #111; border-radius: 50%; }
+  .mole .eye.l { left: 28%; } .mole .eye.r { right: 28%; }
+  .mole .nose { position: absolute; top: 42%; left: 50%; transform: translateX(-50%); width: 22%; height: 14%; background: #ff8fa3; border-radius: 50%; }
+  .mole .tooth { position: absolute; top: 56%; left: 50%; transform: translateX(-50%); width: 14%; height: 10%; background: #fff; border: 2px solid #ccc; border-top: none; }
+  .mole.gold .body { background: #f5c518; border-color: #b8860b; }
+  .mole .tongue, .mole .tag, .mole .brow, .mole .trio { display: none; }
+  /* 메롱 두더지: 잡으면 안 되는 얄미운 녀석 */
+  .mole.tease .body { background: #a35bd1; border-color: #5e2486; }
+  .mole.tease .eye { background: none; }
+  .mole.tease .eye::before {
+    position: absolute; left: -40%; top: -45%; font-weight: 900; color: #1a0a24;
+    font-size: clamp(11px, 3.4vw, 20px);
+  }
+  .mole.tease .eye.l::before { content: ">"; }
+  .mole.tease .eye.r::before { content: "<"; }
+  .mole.tease .nose { background: #ff5ea8; }
+  .mole.tease .tooth { display: none; }
+  .mole.tease .tongue {
+    display: block; position: absolute; top: 57%; left: 50%; width: 24%; height: 28%;
+    background: #ff3d5e; border: 2px solid #a8102e; border-radius: 0 0 50% 50%;
+    transform: translateX(-35%) rotate(10deg); animation: wag 0.3s ease-in-out infinite alternate;
+  }
+  .mole.tease .tongue::after {
+    content: ""; position: absolute; left: 45%; top: 0; width: 2px; height: 55%; background: #a8102e;
+  }
+  @keyframes wag { to { transform: translateX(-65%) rotate(-10deg); } }
+  .mole.tease .tag {
+    display: block; position: absolute; top: -6%; right: -22%; background: #fff; color: #a8102e;
+    border: 2px solid #a8102e; border-radius: 10px; padding: 1px 6px; font-weight: 900;
+    font-size: clamp(9px, 2.6vw, 14px); white-space: nowrap; transform: rotate(12deg); z-index: 4;
+  }
+  /* 세쌍둥이 두더지 */
+  .mole.trio .body { display: none; }
+  .mole.trio .trio { display: flex; align-items: flex-end; width: 130%; height: 100%; gap: 2%; }
+  .trio .head {
+    flex: 1; height: 72%; position: relative; background: #a0672f; border: 3px solid #5a3a1a;
+    border-radius: 50% 50% 20% 20%; transition: transform 0.15s ease-in, filter 0.1s;
+  }
+  .trio .head:nth-child(2) { height: 92%; }
+  .trio .head .eye { top: 22%; width: 18%; height: 13%; }
+  .trio .head .eye.l { left: 22%; } .trio .head .eye.r { right: 22%; }
+  .trio .head .nose { top: 42%; width: 34%; height: 15%; }
+  .trio .head.hit { filter: brightness(1.6); transform: translateY(110%); }
+  .hole.up .mole { bottom: 10%; }
+  .hole.hit .mole .body { filter: brightness(1.6); }
+  .hole.hit .mole .eye { background: none; }
+  .hole.hit .mole .eye::before { content: "✕"; position: absolute; font-size: clamp(10px, 3vw, 18px); font-weight: 900; left: -30%; top: -40%; color: #111; }
+  .pop {
+    position: absolute; left: 50%; top: 20%; transform: translateX(-50%);
+    font-weight: 900; font-size: 22px; z-index: 5; pointer-events: none;
+    animation: pop 0.7s ease-out forwards; text-shadow: 2px 2px 0 #fff;
+  }
+  @keyframes pop { to { top: -10%; opacity: 0; } }
+  .controls { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  button {
+    font: inherit; font-weight: 800; font-size: 20px; padding: 10px 28px; border-radius: 14px;
+    border: 3px solid #6b4423; background: #ffcc33; color: #3b2a1a; cursor: pointer;
+    box-shadow: 0 5px 0 #6b4423; transition: transform 0.05s;
+  }
+  button:active { transform: translateY(4px); box-shadow: 0 1px 0 #6b4423; }
+  button:disabled { opacity: 0.5; cursor: default; }
+  select { font: inherit; font-weight: 700; font-size: 18px; padding: 8px; border-radius: 12px; border: 3px solid #6b4423; background: #fff8e7; }
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none;
+    justify-content: center; align-items: center; z-index: 10; padding: 16px;
+  }
+  .overlay.show { display: flex; }
+  .modal {
+    background: #fff8e7; border: 4px solid #6b4423; border-radius: 20px; padding: 24px 32px;
+    text-align: center; max-width: 360px; width: 100%;
+  }
+  .modal h2 { font-size: 30px; margin-bottom: 10px; }
+  .modal p { font-size: 18px; margin: 6px 0; }
+  .help { margin-top: 16px; background: rgba(255,248,231,0.9); border-radius: 12px; padding: 10px 16px; font-size: 14px; max-width: 480px; text-align: center; line-height: 1.6; }
+  .main { display: flex; gap: 20px; align-items: flex-start; justify-content: center; width: 100%; }
+  .rank-panel {
+    background: #fff8e7; border: 3px solid #6b4423; border-radius: 16px;
+    padding: 12px 14px; width: 210px; flex-shrink: 0;
+  }
+  .rank-panel h3 { text-align: center; font-size: 20px; margin-bottom: 8px; }
+  .rank-list { list-style: none; }
+  .rank-list li {
+    display: flex; justify-content: space-between; gap: 8px; padding: 5px 8px;
+    border-radius: 8px; font-weight: 700; font-size: 15px;
+  }
+  .rank-list li:nth-child(odd) { background: #f3e6c8; }
+  .rank-list li .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  .rank-list li.me { background: #ffcc33; }
+  .rank-list li.empty { color: #a08a70; font-weight: 500; }
+  .goal {
+    margin-top: 10px; text-align: center; font-weight: 800; font-size: 15px;
+    background: #6b4423; color: #fff8e7; border-radius: 10px; padding: 8px; line-height: 1.4;
+  }
+  .goal b { color: #ffcc33; font-size: 18px; }
+  .entry { margin: 12px 0 4px; display: flex; gap: 8px; }
+  .entry input {
+    flex: 1; min-width: 0; font: inherit; font-size: 18px; font-weight: 700; padding: 8px 10px;
+    border: 3px solid #6b4423; border-radius: 12px; background: #fff;
+  }
+  .entry button { font-size: 17px; padding: 8px 14px; }
+  .modal .rank-list { margin-top: 10px; text-align: left; }
+  .modal .msg { font-size: 15px; color: #7a5a3a; }
+  @media (max-width: 720px) {
+    .main { flex-direction: column; align-items: center; }
+    .rank-panel { width: min(92vw, 480px); }
+  }
+  .congrats {
+    display: none; margin: 10px 0; padding: 12px; border-radius: 14px; line-height: 1.5;
+    background: linear-gradient(135deg, #ffe066, #ffb347); border: 3px solid #d4a000;
+    font-weight: 800; font-size: 16px; animation: bounceIn 0.6s cubic-bezier(.3,1.6,.5,1);
+  }
+  .congrats.show { display: block; }
+  .congrats .big { font-size: 20px; display: block; color: #8a3b00; }
+  .congrats b { color: #c2185b; }
+  @keyframes bounceIn { from { transform: scale(0.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .confetti {
+    position: fixed; top: -20px; width: 10px; height: 16px; z-index: 20; pointer-events: none;
+    animation: fall linear forwards;
+  }
+  @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+  .shake { animation: shake 0.3s; }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+</style>
+</head>
+<body>
+  <h1>🐹 두더지 잡기</h1>
+  <div class="hud">
+    <div>점수: <span id="score">0</span></div>
+    <div>시간: <span id="time">30</span>초</div>
+    <div>콤보: <span id="combo">0</span></div>
+  </div>
+
+  <div class="main">
+    <aside class="rank-panel">
+      <h3>🏆 TOP 5 <small id="rankDiff">(보통)</small></h3>
+      <ol class="rank-list" id="sideRank"></ol>
+      <div class="goal" id="goal"></div>
+    </aside>
+    <div class="board" id="board"></div>
+  </div>
+
+  <div class="controls">
+    <select id="difficulty">
+      <option value="easy">쉬움</option>
+      <option value="normal" selected>보통</option>
+      <option value="hard">어려움</option>
+    </select>
+    <button id="startBtn">시작!</button>
+  </div>
+
+  <div class="help">
+    🟤 두더지 <b>+10</b> · 🟡 황금 두더지 <b>+30</b> · 🟤🟤🟤 세쌍둥이 머리마다 <b>+10</b>, 셋 다 잡으면 <b>+20</b><br>
+    🟣 메롱 두더지는 절대 잡지 마세요! <b>-20</b><br>
+    연속으로 잡으면 콤보 보너스! 키보드 숫자패드(1~9)로도 플레이할 수 있어요.
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <h2>게임 종료!</h2>
+      <p>점수: <b id="finalScore">0</b></p>
+      <p>최대 콤보: <b id="finalCombo">0</b></p>
+      <div class="congrats" id="congrats"></div>
+      <form class="entry" id="entryForm">
+        <input id="nameInput" maxlength="10" placeholder="이름 입력 (최대 10자)" autocomplete="off">
+        <button type="submit">등록</button>
+      </form>
+      <p class="msg" id="entryMsg"></p>
+      <ol class="rank-list" id="modalRank"></ol>
+      <br>
+      <button id="againBtn">다시 하기</button>
+    </div>
+  </div>
+
+<script>
+const GAME_TIME = 30;
+const LEVELS = {
+  easy:   { minUp: 900, maxUp: 1400, minGap: 500, maxGap: 1000, maxMoles: 1 },
+  normal: { minUp: 650, maxUp: 1100, minGap: 350, maxGap: 800,  maxMoles: 2 },
+  hard:   { minUp: 450, maxUp: 800,  minGap: 200, maxGap: 550,  maxMoles: 3 },
+};
+// numpad layout: 7 8 9 / 4 5 6 / 1 2 3
+const KEY_MAP = { '7': 0, '8': 1, '9': 2, '4': 3, '5': 4, '6': 5, '1': 6, '2': 7, '3': 8 };
+
+const board = document.getElementById('board');
+const scoreEl = document.getElementById('score');
+const timeEl = document.getElementById('time');
+const comboEl = document.getElementById('combo');
+const startBtn = document.getElementById('startBtn');
+const diffSel = document.getElementById('difficulty');
+const overlay = document.getElementById('overlay');
+const sideRank = document.getElementById('sideRank');
+const modalRank = document.getElementById('modalRank');
+const goalEl = document.getElementById('goal');
+const entryForm = document.getElementById('entryForm');
+const nameInput = document.getElementById('nameInput');
+const entryMsg = document.getElementById('entryMsg');
+
+const RANK_SIZE = 5;
+const DIFF_NAMES = { easy: '쉬움', normal: '보통', hard: '어려움' };
+
+let holes = [];
+let score = 0, timeLeft = GAME_TIME, combo = 0, maxCombo = 0;
+let playing = false, timerId = null, spawnId = null;
+let level = LEVELS.normal;
+let lastEntryId = null;
+
+function rankKey() { return 'whack-rank-' + diffSel.value; }
+function getRanking() {
+  try { return JSON.parse(localStorage.getItem(rankKey())) || []; } catch { return []; }
+}
+function saveRanking(list) {
+  try { localStorage.setItem(rankKey(), JSON.stringify(list)); } catch {}
+}
+function qualifies(s) {
+  const list = getRanking();
+  return s > 0 && (list.length < RANK_SIZE || s > list[list.length - 1].score);
+}
+
+function renderRankList(el, list, highlightId) {
+  el.innerHTML = '';
+  const medals = ['🥇', '🥈', '🥉', '4', '5'];
+  for (let i = 0; i < RANK_SIZE; i++) {
+    const li = document.createElement('li');
+    const r = list[i];
+    const nm = document.createElement('span');
+    nm.className = 'nm';
+    const sc = document.createElement('span');
+    if (r) {
+      nm.textContent = `${medals[i]}. ${r.name}`;
+      sc.textContent = r.score + '점';
+      if (r.id === highlightId) li.classList.add('me');
+    } else {
+      li.classList.add('empty');
+      nm.textContent = `${medals[i]}. ---`;
+      sc.textContent = '';
+    }
+    li.append(nm, sc);
+    el.appendChild(li);
+  }
+}
+
+function renderSide() {
+  document.getElementById('rankDiff').textContent = `(${DIFF_NAMES[diffSel.value]})`;
+  renderRankList(sideRank, getRanking(), lastEntryId);
+  updateGoal();
+}
+
+function updateGoal() {
+  const list = getRanking();
+  if (!list.length) {
+    goalEl.innerHTML = '아직 기록이 없어요!<br>첫 1등의 주인공이 되세요';
+    return;
+  }
+  const top = list[0].score;
+  if (!playing) {
+    goalEl.innerHTML = `<b>${top}점</b> 넘으면 1등입니다!`;
+  } else if (score > top) {
+    goalEl.innerHTML = '🏆 현재 <b>1등</b> 페이스!';
+  } else {
+    const rank = list.filter(r => r.score >= score).length + 1;
+    const rankTxt = rank <= RANK_SIZE ? `현재 ${rank}등 페이스<br>` : '';
+    goalEl.innerHTML = `${rankTxt}1등까지 <b>${top - score + 1}점</b>!`;
+  }
+}
+
+for (let i = 0; i < 9; i++) {
+  const hole = document.createElement('div');
+  hole.className = 'hole';
+  const face = '<div class="eye l"></div><div class="eye r"></div><div class="nose"></div>';
+  hole.innerHTML = '<div class="mole">'
+    + '<div class="body">' + face + '<div class="tooth"></div><div class="tongue"></div><div class="tag">메롱~</div></div>'
+    + '<div class="trio">' + ('<div class="head">' + face + '</div>').repeat(3) + '</div>'
+    + '</div>';
+  hole.addEventListener('pointerdown', e => whack(i, e.target.closest('.head')));
+  board.appendChild(hole);
+  holes.push({
+    el: hole, mole: hole.querySelector('.mole'), heads: [...hole.querySelectorAll('.head')],
+    up: false, type: null, timeout: null,
+  });
+}
+
+const rand = (a, b) => Math.random() * (b - a) + a;
+
+function spawn() {
+  if (!playing) return;
+  const active = holes.filter(h => h.up).length;
+  if (active < level.maxMoles) {
+    const free = holes.filter(h => !h.up);
+    const h = free[Math.floor(Math.random() * free.length)];
+    const r = Math.random();
+    h.type = r < 0.1 ? 'gold' : r < 0.25 ? 'tease' : r < 0.37 ? 'trio' : 'normal';
+    h.heads.forEach(hd => hd.classList.remove('hit'));
+    h.mole.className = 'mole' + (h.type !== 'normal' ? ' ' + h.type : '');
+    h.el.classList.remove('hit');
+    h.el.classList.add('up');
+    h.up = true;
+    let upTime = rand(level.minUp, level.maxUp);
+    if (h.type === 'gold') upTime *= 0.7;
+    if (h.type === 'trio') upTime *= 1.8;
+    h.timeout = setTimeout(() => hide(h, true), upTime);
+  }
+  spawnId = setTimeout(spawn, rand(level.minGap, level.maxGap));
+}
+
+function hide(h, missed) {
+  clearTimeout(h.timeout);
+  h.el.classList.remove('up');
+  h.up = false;
+  if (missed && h.type !== 'tease') { combo = 0; comboEl.textContent = 0; }
+}
+
+function whack(i, headEl) {
+  const h = holes[i];
+  if (!playing || !h.up || h.el.classList.contains('hit')) return;
+  if (h.type === 'trio') return whackTrio(h, headEl);
+  let pts, color;
+  if (h.type === 'tease') {
+    pts = -20; color = '#e33'; combo = 0;
+    board.classList.remove('shake'); void board.offsetWidth; board.classList.add('shake');
+  } else {
+    combo++;
+    maxCombo = Math.max(maxCombo, combo);
+    pts = (h.type === 'gold' ? 30 : 10) + Math.floor(combo / 5) * 5;
+    color = h.type === 'gold' ? '#d4a000' : '#2a7a1a';
+  }
+  addScore(pts);
+  h.el.classList.add('hit');
+  showPop(h.el, (pts > 0 ? '+' : '') + pts + (combo >= 3 && pts > 0 ? ` (${combo}콤보)` : ''), color);
+  clearTimeout(h.timeout);
+  h.timeout = setTimeout(() => hide(h, false), 250);
+}
+
+// 세쌍둥이: 머리를 하나씩 잡는다. 키보드로 치면 남은 머리 중 왼쪽부터.
+function whackTrio(h, headEl) {
+  const head = headEl && !headEl.classList.contains('hit')
+    ? headEl : h.heads.find(hd => !hd.classList.contains('hit'));
+  if (!head) return;
+  head.classList.add('hit');
+  combo++;
+  maxCombo = Math.max(maxCombo, combo);
+  let pts = 10 + Math.floor(combo / 5) * 5;
+  const cleared = h.heads.every(hd => hd.classList.contains('hit'));
+  if (cleared) pts += 20;
+  addScore(pts);
+  showPop(h.el, cleared ? `+${pts} 트리오 클리어!` : `+${pts}`, cleared ? '#c2185b' : '#2a7a1a');
+  if (cleared) {
+    h.el.classList.add('hit');
+    clearTimeout(h.timeout);
+    h.timeout = setTimeout(() => hide(h, false), 250);
+  }
+}
+
+function addScore(pts) {
+  score = Math.max(0, score + pts);
+  scoreEl.textContent = score;
+  comboEl.textContent = combo;
+  updateGoal();
+}
+
+function showPop(el, text, color) {
+  const p = document.createElement('div');
+  p.className = 'pop';
+  p.textContent = text;
+  p.style.color = color;
+  el.appendChild(p);
+  setTimeout(() => p.remove(), 700);
+}
+
+function start() {
+  level = LEVELS[diffSel.value];
+  score = 0; combo = 0; maxCombo = 0; timeLeft = GAME_TIME;
+  scoreEl.textContent = 0; comboEl.textContent = 0; timeEl.textContent = timeLeft;
+  overlay.classList.remove('show');
+  holes.forEach(h => hide(h, false));
+  playing = true;
+  lastEntryId = null;
+  renderSide();
+  startBtn.disabled = true; diffSel.disabled = true;
+  timerId = setInterval(() => {
+    timeLeft--;
+    timeEl.textContent = timeLeft;
+    if (timeLeft <= 0) end();
+  }, 1000);
+  spawn();
+}
+
+function end() {
+  playing = false;
+  clearInterval(timerId); clearTimeout(spawnId);
+  holes.forEach(h => hide(h, false));
+  startBtn.disabled = false; diffSel.disabled = false;
+  document.getElementById('finalScore').textContent = score;
+  document.getElementById('finalCombo').textContent = maxCombo;
+  const list = getRanking();
+  showCongrats(list[0]);
+  if (qualifies(score)) {
+    entryForm.style.display = '';
+    entryMsg.textContent = 'TOP 5 진입! 이름을 남겨주세요';
+    nameInput.value = '';
+  } else {
+    entryForm.style.display = 'none';
+    entryMsg.textContent = list.length
+      ? `TOP 5에 들려면 ${list[list.length - 1].score + 1}점 이상 필요해요`
+      : '';
+  }
+  renderRankList(modalRank, list, null);
+  updateGoal();
+  overlay.classList.add('show');
+  if (qualifies(score)) nameInput.focus();
+}
+
+function showCongrats(prevTop) {
+  const el = document.getElementById('congrats');
+  el.classList.remove('show');
+  if (score <= 0 || (prevTop && score <= prevTop.score)) return;
+  if (prevTop) {
+    el.innerHTML = '<span class="big">👑 새로운 챔피언 탄생! 👑</span>';
+    const line = document.createElement('div');
+    const who = document.createElement('b');
+    who.textContent = prevTop.name;
+    line.append('기존 1등 ', who, `님(${prevTop.score}점)을`,
+      document.createElement('br'), `${score - prevTop.score}점 차이로 제쳤어요! 🎉`);
+    el.appendChild(line);
+  } else {
+    el.innerHTML = '<span class="big">🎉 첫 1등 기록! 🎉</span>이 난이도의 첫 번째 챔피언이에요!';
+  }
+  void el.offsetWidth;
+  el.classList.add('show');
+  confetti();
+}
+
+function confetti() {
+  const colors = ['#ff595e', '#ffca3a', '#8ac926', '#1982c4', '#6a4c93', '#ff8fa3'];
+  for (let i = 0; i < 120; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.background = colors[i % colors.length];
+    c.style.animationDuration = rand(2, 4) + 's';
+    c.style.animationDelay = rand(0, 0.8) + 's';
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 5000);
+  }
+}
+
+entryForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const name = nameInput.value.trim() || '익명';
+  lastEntryId = Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+  const list = getRanking();
+  list.push({ id: lastEntryId, name, score, combo: maxCombo, date: new Date().toISOString() });
+  list.sort((a, b) => b.score - a.score);
+  saveRanking(list.slice(0, RANK_SIZE));
+  entryForm.style.display = 'none';
+  entryMsg.textContent = '등록 완료!';
+  renderRankList(modalRank, getRanking(), lastEntryId);
+  renderSide();
+});
+
+startBtn.addEventListener('click', start);
+document.getElementById('againBtn').addEventListener('click', start);
+diffSel.addEventListener('change', () => { lastEntryId = null; renderSide(); });
+document.addEventListener('keydown', e => {
+  if (e.target === nameInput) return;
+  if (e.key in KEY_MAP) whack(KEY_MAP[e.key]);
+});
+renderSide();
+</script>
+</body>
+</html>
