@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gesture Effects</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Black+Han+Sans&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0b0f;
+    --panel: rgba(15, 15, 20, 0.72);
+    --text: #f2f2f5;
+    --muted: #9a9aa8;
+    --accent: #ffd400;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font-family: "Malgun Gothic", system-ui, sans-serif; overflow: hidden; }
+
+  #stage { position: fixed; inset: 0; display: grid; place-items: center; }
+  #view { width: 100vw; height: 100vh; object-fit: contain; display: block; }
+
+  /* ---------- HUD ---------- */
+  #hud { position: fixed; top: 16px; left: 16px; width: 260px; padding: 14px 16px;
+    background: var(--panel); border-radius: 14px; backdrop-filter: blur(8px); z-index: 20;
+    font-size: 13px; }
+  #hud h1 { font-size: 15px; margin: 0 0 8px; }
+  #status { color: var(--muted); margin-bottom: 10px; min-height: 18px; }
+  #current { font-size: 22px; white-space: nowrap; font-weight: 800; margin-bottom: 8px; letter-spacing: 1px; }
+  .bar { display: grid; grid-template-columns: 44px 1fr 38px; align-items: center; gap: 6px; margin: 4px 0; }
+  .bar .track { height: 8px; background: rgba(255,255,255,0.12); border-radius: 4px; overflow: hidden; }
+  .bar .fill { height: 100%; width: 0; background: var(--accent); transition: width .08s linear; }
+  .bar span:last-child { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+  #hud label { display: flex; align-items: center; gap: 8px; margin-top: 10px; color: var(--muted); }
+  #hud input[type=range] { flex: 1; }
+
+  /* ---------- 효과 공통 ---------- */
+  .fx { position: fixed; inset: 0; pointer-events: none; z-index: 10; opacity: 0;
+    transition: opacity .25s ease; }
+  .fx.on { opacity: 1; }
+
+  /* L: LOVE 로고 */
+  #fx-L { display: grid; place-items: center; background: radial-gradient(circle, rgba(255,45,120,0) 30%, rgba(80,0,30,0.55) 100%); }
+  #fx-L .logo { padding: 2vh 5vw 4vh; background: #fff; color: #e0004d;
+    display: grid; place-items: center; box-shadow: 0 20px 80px rgba(255,0,90,.45);
+    transform: scale(.4) rotate(-8deg); transition: transform .45s cubic-bezier(.2,1.6,.4,1); }
+  #fx-L.on .logo { transform: scale(1) rotate(0); animation: beat 1s ease-in-out .45s infinite; }
+  @keyframes beat { 0%, 100% { scale: 1; } 15% { scale: 1.08; } 30% { scale: 1; } 45% { scale: 1.05; } }
+  #fx-L .logo span { font-family: "Pacifico", cursive; font-size: min(20vh, 15vw); line-height: 1.3; }
+
+  /* none: 아무것도 없습니다. */
+  #fx-NONE { display: grid; place-items: end center; padding-bottom: 10vh; }
+  #fx-NONE span { padding: 14px 28px; border-radius: 999px; background: rgba(0,0,0,.6);
+    color: #fff; font-size: min(5vh, 6vw); font-weight: 700; }
+
+  /* V: 브이 이모지 */
+  #fx-V .big { position: absolute; left: 50%; top: 50%; font-size: min(40vh, 40vw);
+    transform: translate(-50%, -50%) scale(.3); transition: transform .4s cubic-bezier(.2,1.8,.4,1);
+    filter: drop-shadow(0 12px 30px rgba(0,0,0,.5)); }
+  #fx-V.on .big { transform: translate(-50%, -50%) scale(1); animation: wiggle .6s ease-in-out .4s infinite alternate; }
+  @keyframes wiggle { from { rotate: -10deg; } to { rotate: 10deg; } }
+  .pop { position: absolute; bottom: -80px; animation: rise linear forwards; }
+  @keyframes rise {
+    from { transform: translateY(0) rotate(0); opacity: 1; }
+    to { transform: translateY(-115vh) rotate(var(--r)); opacity: .9; }
+  }
+
+  /* E: EEEEEEEEE 텍스트 홍수 */
+  #fx-E { display: flex; flex-direction: column; justify-content: space-around; overflow: hidden;
+    background: rgba(0,0,0,.35); }
+  #fx-E .row { white-space: nowrap; font-family: "Black Han Sans", "Malgun Gothic", sans-serif;
+    font-size: 9vh; line-height: 1; letter-spacing: .02em; animation: scroll 6s linear infinite; }
+  #fx-E .row:nth-child(even) { animation-direction: reverse; }
+  @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  #fx-E .center { position: absolute; inset: 0; display: grid; place-items: center;
+    font-family: "Black Han Sans", sans-serif; font-size: 16vh; color: #fff;
+    text-shadow: 0 0 20px #ff2d95, 0 0 50px #ff2d95; animation: shake .12s infinite; }
+  @keyframes shake { 0% { translate: 0 0; } 25% { translate: 3px -2px; } 50% { translate: -3px 2px; } 75% { translate: 2px 3px; } }
+
+  #err { position: fixed; inset: 0; display: none; place-items: center; text-align: center;
+    padding: 24px; z-index: 30; background: var(--bg); line-height: 1.7; }
+
+  @media (max-width: 600px) {
+    #hud { width: calc(100vw - 32px); }
+  }
+</style>
+</head>
+<body>
+  <div id="stage"><canvas id="view" width="640" height="480"></canvas></div>
+
+  <div id="fx-L" class="fx"><div class="logo"><span>LOVE</span></div></div>
+  <div id="fx-NONE" class="fx"><span>아무것도 없습니다.</span></div>
+  <div id="fx-V" class="fx"><div class="big">✌️</div></div>
+  <div id="fx-E" class="fx"></div>
+
+  <div id="hud">
+    <h1>✋ 제스처 이펙트</h1>
+    <div id="status">모델 불러오는 중…</div>
+    <div id="current">-</div>
+    <div id="bars"></div>
+    <label>민감도 <input id="thr" type="range" min="0.3" max="0.99" step="0.01" value="0.7"><b id="thrv">0.70</b></label>
+  </div>
+
+  <div id="err"></div>
+
+<script type="module">
+import { FilesetResolver, HandLandmarker } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.1.0/vision_bundle.mjs";
+
+const W = 640, H = 480;          // 파이썬 학습 때와 같은 4:3 해상도
+const SMOOTH = 6;                // 최근 N프레임 평균으로 흔들림 방지
+const CONNECTIONS = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],
+  [9,13],[13,14],[14,15],[15,16],[13,17],[0,17],[17,18],[18,19],[19,20]];
+
+const view = document.getElementById("view");
+const ctx = view.getContext("2d");
+const src = document.createElement("canvas");   // 좌우반전 + 4:3 크롭한 입력 영상
+src.width = W; src.height = H;
+const sctx = src.getContext("2d", { willReadFrequently: true });
+const $status = document.getElementById("status");
+const $current = document.getElementById("current");
+const $thr = document.getElementById("thr");
+$thr.oninput = () => document.getElementById("thrv").textContent = (+$thr.value).toFixed(2);
+
+function fail(msg) {
+  const el = document.getElementById("err");
+  el.innerHTML = msg;
+  el.style.display = "grid";
+}
+
+// ---------- 분류기 (sklearn StandardScaler + MLP 를 JS로) ----------
+let model;
+function features(lms, handed) {
+  const p = lms.map(l => [l.x - lms[0].x, l.y - lms[0].y, l.z - lms[0].z]);
+  let s = 0;
+  for (const [x, y] of p) s = Math.max(s, Math.hypot(x, y));
+  const out = [];
+  for (const [x, y, z] of p) {
+    const k = s > 0 ? s : 1;
+    out.push((handed === "Left" ? -x : x) / k, y / k, z / k);
+  }
+  return out;
+}
+function predict(feat) {
+  let h = feat.map((v, i) => (v - model.mean[i]) / model.scale[i]);
+  model.layers.forEach((layer, li) => {
+    const n = layer.b.length, next = new Array(n);
+    for (let j = 0; j < n; j++) {
+      let sum = layer.b[j];
+      for (let i = 0; i < h.length; i++) sum += h[i] * layer.W[i][j];
+      next[j] = sum;
+    }
+    h = li < model.layers.length - 1 ? next.map(v => Math.max(0, v)) : next;
+  });
+  const m = Math.max(...h);
+  const e = h.map(v => Math.exp(v - m));
+  const z = e.reduce((a, b) => a + b, 0);
+  return e.map(v => v / z);
+}
+window.__gesture = { features, predict, setEffect: n => setEffect(n) };   // 디버그/검증용
+
+// ---------- 확률 막대 ----------
+function buildBars() {
+  const box = document.getElementById("bars");
+  box.innerHTML = model.classes.map(c =>
+    `<div class="bar"><span>${c}</span><div class="track"><div class="fill" id="f-${c}"></div></div><span id="p-${c}">0</span></div>`
+  ).join("");
+}
+function showBars(prob) {
+  model.classes.forEach((c, i) => {
+    document.getElementById(`f-${c}`).style.width = `${(prob[i] * 100).toFixed(0)}%`;
+    document.getElementById(`p-${c}`).textContent = prob[i].toFixed(2);
+  });
+}
+
+// ---------- 효과 ----------
+const fx = { L: document.getElementById("fx-L"), V: document.getElementById("fx-V"),
+  E: document.getElementById("fx-E"), NONE: document.getElementById("fx-NONE") };
+// 화면/패널에 보여줄 이름
+const DISPLAY = { L: "LOVE", NONE: "아무것도 없습니다." };
+const fxV = fx.V;
+let active = null, popTimer = null;
+
+// E 화면 채우기
+fx.E.innerHTML = Array.from({ length: 9 }, (_, i) => {
+  const hue = (i * 40) % 360;
+  return `<div class="row" style="color:hsl(${hue} 95% 62%)">${"E".repeat(80)}</div>`;
+}).join("") + `<div class="center">EEEEEEEEE</div>`;
+
+function spawnPeace() {
+  const el = document.createElement("div");
+  el.className = "pop";
+  el.textContent = "✌️";
+  el.style.left = `${Math.random() * 100}vw`;
+  el.style.fontSize = `${30 + Math.random() * 70}px`;
+  el.style.animationDuration = `${2.2 + Math.random() * 2}s`;
+  el.style.setProperty("--r", `${(Math.random() - .5) * 120}deg`);
+  fxV.appendChild(el);
+  el.addEventListener("animationend", () => el.remove());
+}
+
+function setEffect(name) {
+  const key = name ? name.toUpperCase() : null;
+  const next = fx[key] ? key : null;
+  if (next === active) return;
+  if (active) fx[active].classList.remove("on");
+  clearInterval(popTimer);
+  active = next;
+  if (!active) return;
+  fx[active].classList.add("on");
+  if (active === "V") popTimer = setInterval(spawnPeace, 90);
+}
+
+// ---------- 그리기 ----------
+function drawHand(lms) {
+  const pts = lms.map(l => [l.x * W, l.y * H]);
+  ctx.lineWidth = 3; ctx.strokeStyle = "#00ff88";
+  for (const [a, b] of CONNECTIONS) {
+    ctx.beginPath(); ctx.moveTo(...pts[a]); ctx.lineTo(...pts[b]); ctx.stroke();
+  }
+  ctx.fillStyle = "#ff3355";
+  for (const [x, y] of pts) { ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill(); }
+}
+
+// ---------- 메인 ----------
+async function main() {
+  try {
+    model = await (await fetch("gesture_model.json")).json();
+  } catch {
+    return fail("gesture_model.json 을 불러오지 못했습니다.<br>프로젝트 폴더에서 <code>python export_web_model.py</code> 실행 후,<br><code>python -m http.server 8000</code> 으로 띄워서 <code>http://localhost:8000/web/</code> 으로 접속하세요.");
+  }
+  buildBars();
+
+  const fileset = await FilesetResolver.forVisionTasks(
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.1.0/wasm");
+  const landmarker = await HandLandmarker.createFromOptions(fileset, {
+    baseOptions: { modelAssetPath: "../hand_landmarker.task", delegate: "GPU" },
+    runningMode: "VIDEO",
+    numHands: 1,
+  });
+
+  $status.textContent = "카메라 연결 중…";
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { width: W, height: H }, audio: false });
+  } catch (e) {
+    return fail(`카메라를 열 수 없습니다: ${e.message}<br>브라우저 카메라 권한을 허용하고, Zoom 등 다른 프로그램의 비디오를 꺼주세요.`);
+  }
+  const video = document.createElement("video");
+  video.srcObject = stream; video.muted = true; video.playsInline = true;
+  await video.play();
+  $status.textContent = `학습된 제스처: ${model.classes.join(", ")}`;
+
+  const history = [];
+  let lastTime = -1;
+  function loop() {
+    requestAnimationFrame(loop);
+    if (video.currentTime === lastTime) return;
+    lastTime = video.currentTime;
+
+    // 중앙 4:3 크롭 + 좌우반전 (파이썬 cv2.flip 과 동일)
+    const vw = video.videoWidth, vh = video.videoHeight;
+    let sw = vw, sh = vh;
+    if (vw / vh > W / H) sw = vh * W / H; else sh = vw * H / W;
+    sctx.save();
+    sctx.translate(W, 0); sctx.scale(-1, 1);
+    sctx.drawImage(video, (vw - sw) / 2, (vh - sh) / 2, sw, sh, 0, 0, W, H);
+    sctx.restore();
+
+    const res = landmarker.detectForVideo(src, performance.now());
+    ctx.drawImage(src, 0, 0);
+
+    let prob = null;
+    if (res.landmarks.length) {
+      const lms = res.landmarks[0];
+      const handed = (res.handedness ?? res.handednesses)[0][0].categoryName;
+      drawHand(lms);
+      prob = predict(features(lms, handed));
+    }
+    history.push(prob);
+    if (history.length > SMOOTH) history.shift();
+
+    const valid = history.filter(Boolean);
+    if (valid.length < SMOOTH / 2) {
+      showBars(model.classes.map(() => 0));
+      $current.textContent = "손 없음";
+      setEffect(null);
+      return;
+    }
+    const avg = model.classes.map((_, i) => valid.reduce((a, p) => a + p[i], 0) / valid.length);
+    showBars(avg);
+    const best = avg.indexOf(Math.max(...avg));
+    const label = avg[best] >= +$thr.value ? model.classes[best] : "?";
+    $current.textContent = DISPLAY[label.toUpperCase()] ?? label;
+    setEffect(label);
+  }
+  loop();
+}
+
+main().catch(e => fail(`오류: ${e.message}`));
+</script>
+</body>
+</html>

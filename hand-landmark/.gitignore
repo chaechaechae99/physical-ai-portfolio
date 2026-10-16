@@ -1,0 +1,4 @@
+__pycache__/
+# 수집한 손 데이터와 로컬 학습 모델은 올리지 않음 (웹용 모델은 web/gesture_model.json)
+data/
+models/
