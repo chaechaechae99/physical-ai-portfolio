@@ -1,0 +1,1 @@
+self.__SSG_MANIFEST=new Set(["\u002Ffortune\u002F[type]","\u002Fzodiac\u002F[sign]"]);self.__SSG_MANIFEST_CB&&self.__SSG_MANIFEST_CB()
