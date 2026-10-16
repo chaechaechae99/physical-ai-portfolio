@@ -1,0 +1,15 @@
+# Render 배포 설정 (https://render.com 에서 이 저장소를 연결하면 자동으로 읽는다)
+services:
+  - type: web
+    name: airport-rookie
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: PYTHON_VERSION
+        value: 3.12.4
+      - key: AIRPORT_DEV_MODE      # 1 = 1개월 30초(빠른 진행) / 0 = 1개월 20분(원래 설정)
+        value: "1"
