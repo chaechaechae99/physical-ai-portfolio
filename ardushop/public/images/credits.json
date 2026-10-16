@@ -1,0 +1,188 @@
+{
+  "arduino-uno-r3": {
+    "file": "/images/products/arduino-uno-r3.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Arduino_Uno_-_R3.jpg",
+    "author": "SparkFun Electronics from Boulder, USA",
+    "license": "CC BY 2.0"
+  },
+  "arduino-mega-2560-r3": {
+    "file": "/images/products/arduino-mega-2560-r3.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Arduino_MEGA_2560_R3,_front_side.jpg",
+    "author": "Dsimic",
+    "license": "CC BY-SA 4.0"
+  },
+  "arduino-nano": {
+    "file": "/images/products/arduino-nano.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Arduino_Nano_on_table.jpg",
+    "author": "MegaMegaAndOmega",
+    "license": "CC BY-SA 4.0"
+  },
+  "arduino-uno-r4-wifi": {
+    "file": "/images/products/arduino-uno-r4-wifi.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Arduino_UNO_R4_WiFi.jpg",
+    "author": "Lomrjyo",
+    "license": "CC BY-SA 4.0"
+  },
+  "arduino-uno-r4-minima": {
+    "file": "/images/products/arduino-uno-r4-minima.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:Arduino_Uno_R4_Minima_perspective.webp",
+    "author": "Arduino",
+    "license": "CC BY-SA 3.0"
+  },
+  "arduino-nano-every": {
+    "file": "/images/products/arduino-nano-every.png",
+    "source": "https://commons.wikimedia.org/wiki/File:Arduino_Nano_Every.png",
+    "author": "Enirstad",
+    "license": "CC BY-SA 4.0"
+  },
+  "arduino-nano-33-iot": {
+    "file": "/images/products/arduino-nano-33-iot.png",
+    "source": "https://commons.wikimedia.org/wiki/File:Arduino_Nano_IOT.png",
+    "author": "Enirstad",
+    "license": "CC BY-SA 4.0"
+  },
+  "arduino-due": {
+    "file": "/images/products/arduino-due.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:ArduinoDue_Front.jpg",
+    "author": "Arduino SA",
+    "license": "CC BY-SA 3.0"
+  },
+  "arduino-leonardo": {
+    "file": "/images/products/arduino-leonardo.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Arduino_Leonardo_board_(cropped).JPG",
+    "author": "Kszapsza",
+    "license": "CC BY-SA 4.0"
+  },
+  "arduino-uno-r3-smd": {
+    "file": "/images/products/arduino-uno-r3-smd.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:ArduinoUnoSMD.jpg",
+    "author": "Clic17",
+    "license": "CC BY-SA 4.0"
+  },
+  "uno-r3-compatible-ch340": {
+    "file": "/images/products/uno-r3-compatible-ch340.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Arduino_uno_r3.jpg",
+    "author": "MakeMagazinDE",
+    "license": "CC BY-SA 4.0"
+  },
+  "nano-compatible-ch340": {
+    "file": "/images/products/nano-compatible-ch340.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Clone-Arduino-nano.jpg",
+    "author": "Xofc",
+    "license": "CC BY-SA 4.0"
+  },
+  "mega2560-compatible-ch340": {
+    "file": "/images/products/mega2560-compatible-ch340.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Arduino_Mega_2560_(HW-888)_front.jpg",
+    "author": "Goga504",
+    "license": "CC BY-SA 4.0"
+  },
+  "wemos-d1-r1": {
+    "file": "/images/products/wemos-d1-r1.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Wemos_D1.jpg",
+    "author": "Fernando santos gomes",
+    "license": "CC BY-SA 4.0"
+  },
+  "ethernet-shield-2": {
+    "file": "/images/products/ethernet-shield-2.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Arduino_Ethernet_Shield.jpg",
+    "author": "oomlout",
+    "license": "CC BY-SA 2.0"
+  },
+  "motor-shield-rev3": {
+    "file": "/images/products/motor-shield-rev3.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Arduino_motor_shield_11-4-13.JPG",
+    "author": "Dhesley1519",
+    "license": "CC BY-SA 3.0"
+  },
+  "hc-sr04-ultrasonic": {
+    "file": "/images/products/hc-sr04-ultrasonic.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:SparkFun_HC-SR04_Ultrasonic-Sensor_13959-01a.jpg",
+    "author": "SparkFun",
+    "license": "CC BY 2.0"
+  },
+  "hc-sr501-pir": {
+    "file": "/images/products/hc-sr501-pir.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:PIR-inexpensive.jpg",
+    "author": "Lethalattraction",
+    "license": "CC BY-SA 4.0"
+  },
+  "dht11-module": {
+    "file": "/images/products/dht11-module.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Dht11.jpg",
+    "author": "Edwiyanto",
+    "license": "CC BY-SA 4.0"
+  },
+  "dht22-am2302": {
+    "file": "/images/products/dht22-am2302.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:AM2302_(DHT22)_digital_temperature_and_humidity_sensor_module.jpg",
+    "author": "Suyash Dwivedi",
+    "license": "CC BY-SA 4.0"
+  },
+  "cds-light-sensor": {
+    "file": "/images/products/cds-light-sensor.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Photoresistor_with_orange_background-7536.jpg",
+    "author": "Raimond Spekking",
+    "license": "CC BY-SA 4.0"
+  },
+  "soil-moisture-sensor": {
+    "file": "/images/products/soil-moisture-sensor.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Soil_moisture_sensor.JPG",
+    "author": "Sealman",
+    "license": "CC BY-SA 4.0"
+  },
+  "sound-sensor-module": {
+    "file": "/images/products/sound-sensor-module.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:KY-038.webp",
+    "author": "DaviBosco04",
+    "license": "CC BY-SA 4.0"
+  },
+  "stepper-28byj48-uln2003": {
+    "file": "/images/products/stepper-28byj48-uln2003.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:28BYJ-48_unipolar_stepper_motor_with_ULN2003_driver.jpg",
+    "author": "Kushagra Keshari",
+    "license": "CC BY-SA 4.0"
+  },
+  "l298n-motor-driver": {
+    "file": "/images/products/l298n-motor-driver.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Dosmotorsl298n.jpg",
+    "author": "Quel.soler",
+    "license": "CC BY-SA 4.0"
+  },
+  "a4988-stepper-driver": {
+    "file": "/images/products/a4988-stepper-driver.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:A4988_stepper_motor_driver.jpg",
+    "author": "Kushagra Keshari",
+    "license": "CC BY-SA 4.0"
+  },
+  "lcd1602-i2c": {
+    "file": "/images/products/lcd1602-i2c.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:16x2_Character_LCD_Display.jpg",
+    "author": "oomlout",
+    "license": "CC BY-SA 2.0"
+  },
+  "starter-kit-korean": {
+    "file": "/images/products/starter-kit-korean.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:ARDX_-_Arduino_Experimentation_Kit_(Inside_the_box).jpg",
+    "author": "oomlout",
+    "license": "CC BY-SA 2.0"
+  },
+  "smart-rc-car-line-tracer": {
+    "file": "/images/products/smart-rc-car-line-tracer.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Line_follower.jpg",
+    "author": "Marcmccomb",
+    "license": "CC BY-SA 3.0"
+  },
+  "hero-closeup": {
+    "file": "/images/banners/hero-closeup.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Arduino_Closeup.jpg",
+    "author": "messi",
+    "license": "CC BY-SA 3.0"
+  },
+  "hero-collection": {
+    "file": "/images/banners/hero-collection.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Microcontroller_collection.jpg",
+    "author": "Kleinesfilmröllchen",
+    "license": "CC BY 4.0"
+  }
+}

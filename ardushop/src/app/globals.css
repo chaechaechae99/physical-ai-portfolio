@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: #e6f6f7;
+  --color-brand-100: #c2eaec;
+  --color-brand-500: #00979d;
+  --color-brand-600: #00878f;
+  --color-brand-700: #006d73;
+  --color-brand-900: #0b3b3e;
+  --color-accent-500: #e47128;
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+}
+
+body {
+  background: #f7f8f9;
+  color: #1f2328;
+  font-family: var(--font-sans);
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50;
+}
+@utility btn-primary {
+  @apply btn bg-brand-600 text-white hover:bg-brand-700;
+}
+@utility btn-outline {
+  @apply btn border border-gray-300 bg-white text-gray-800 hover:border-brand-600 hover:text-brand-700;
+}
+@utility input {
+  @apply w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-100;
+}
+@utility label {
+  @apply mb-1.5 block text-sm font-medium text-gray-700;
+}
+@utility card {
+  @apply rounded-xl border border-gray-200 bg-white;
+}

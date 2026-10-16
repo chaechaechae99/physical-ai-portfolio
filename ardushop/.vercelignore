@@ -1,0 +1,6 @@
+.env*
+!.env.example
+.claude
+.mcp.json
+node_modules
+.next
