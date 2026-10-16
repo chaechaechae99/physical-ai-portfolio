@@ -1,0 +1,8 @@
+# 비밀키 - 절대 커밋 금지
+.env
+**/.env
+# 원본 저장소 클론(수정사항은 patches/youtube-mcp.patch 로 공유)
+youtube-mcp/
+# 크롤링 결과/로컬 DB
+out/
+youtube_db/

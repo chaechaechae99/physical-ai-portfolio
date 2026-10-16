@@ -1,0 +1,19 @@
+# 비밀 키
+.env
+**/.env*
+
+# Next.js
+web/node_modules/
+web/.next/
+web/out/
+web/next-env.d.ts
+*.tsbuildinfo
+
+# 크롤링 원문 (로컬 학습용, 공개 금지)
+crawl/output/
+
+# 타사 사이트 화면 캡처 (저작권)
+references/design_*.png
+
+# 백업
+*.bak.html

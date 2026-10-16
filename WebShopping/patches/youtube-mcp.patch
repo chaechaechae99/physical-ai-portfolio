@@ -1,0 +1,133 @@
+diff --git a/pyproject.toml b/pyproject.toml
+index c6750c0..c925b21 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -23,5 +23,5 @@ dependencies = [
+     "python-dotenv>=1.0.0",
+     "pytube2>=15.0.12",
+     "youtube-search>=2.1.2",
+-    "youtube-transcript-api==0.6.3",
++    "youtube-transcript-api>=1.2",
+ ]
+diff --git a/server.py b/server.py
+index 28d2261..4f8375b 100644
+--- a/server.py
++++ b/server.py
+@@ -1,11 +1,12 @@
+-import os, sys
++import os, sys, re
+ from typing import List
+ from mcp.server import Server
+-from mcp.types import Tool, TextContent, ListToolsResult, INVALID_PARAMS
++from mcp.types import Tool, TextContent, ListToolsResult, ErrorData, INVALID_PARAMS
+ from mcp.server.stdio import stdio_server
+ from mcp.shared.exceptions import McpError
+ from langchain_community.tools import YouTubeSearchTool
+ from langchain_community.document_loaders import YoutubeLoader
++from youtube_transcript_api import YouTubeTranscriptApi, NoTranscriptFound, TranscriptsDisabled
+ from langchain_google_genai import GoogleGenerativeAIEmbeddings
+ import lancedb
+ import asyncio
+@@ -56,7 +57,7 @@ async def serve(read, write, options):
+     logger.debug("Initialized YouTube Search Tool")
+     
+     embeddings = GoogleGenerativeAIEmbeddings(
+-        model="models/embedding-001",
++        model="models/gemini-embedding-001",  # embedding-001 is no longer served
+         google_api_key=os.getenv("GOOGLE_API_KEY"),
+         task_type="retrieval_document"  # Set default task type for document storage
+     )
+@@ -83,12 +84,29 @@ async def serve(read, write, options):
+         )
+         logger.debug("Created new videos table")
+     
++    def fetch_transcript(video_url: str, languages: List[str]) -> str:
++        """Fetch a transcript with youtube-transcript-api >= 1.0 (the old static API used by YoutubeLoader is gone)."""
++        video_id = YoutubeLoader.extract_video_id(video_url)
++        api = YouTubeTranscriptApi()
++        try:
++            transcript_list = api.list(video_id)
++        except TranscriptsDisabled:
++            return ""
++        try:
++            transcript = transcript_list.find_transcript(languages)
++        except NoTranscriptFound:
++            transcript = next(iter(transcript_list), None)
++            if transcript is None:
++                return ""
++        return " ".join(snippet.text.strip() for snippet in transcript.fetch())
++
+     def clean_text(text: str) -> str:
+         """Clean text to remove problematic characters."""
+         try:
+             # Replace emojis and special characters with their text equivalents
+             # or remove them if no good replacement exists
+-            return text.encode('ascii', 'ignore').decode('ascii')
++            # Drop emoji and other non-BMP characters but keep non-Latin scripts such as Korean
++            return re.sub(r'[^\u0000-\uFFFF]', '', text)
+         except Exception:
+             return str(text)
+ 
+@@ -168,16 +186,8 @@ async def serve(read, write, options):
+                 # Extract video_id from URL, handling URLs with additional parameters
+                 video_url = arguments["video_url"] if len(arguments["video_url"].split("&")) == 1 else arguments["video_url"].split("&")[0]  # Extract video_id from URL when the url is like https://www.youtube.com/watch?v=VIDEO_ID&...
+                 # Use YoutubeLoader with languages parameter
+-                loader = YoutubeLoader.from_youtube_url(
+-                    youtube_url=video_url,
+-                    language=languages,
+-                    add_video_info=False,
+-                    continue_on_failure=True
+-                )
+-                # Load transcript and extract text
+-                documents = loader.load()
+-                if documents:
+-                    transcript_text = documents[0].page_content
++                transcript_text = fetch_transcript(video_url, languages)
++                if transcript_text:
+                     cleaned_transcript = clean_text(transcript_text)
+                     return [TextContent(type="text", text=cleaned_transcript)]
+                 else:
+@@ -188,20 +198,13 @@ async def serve(read, write, options):
+                 # Extract video_id from URL, handling URLs with additional parameters
+                 video_url = arguments["video_url"] if len(arguments["video_url"].split("&")) == 1 else arguments["video_url"].split("&")[0]  # Extract video_id from URL when the url is like https://www.youtube.com/watch?v=VIDEO_ID&...
+                 # Use YoutubeLoader with languages parameter
+-                loader = YoutubeLoader.from_youtube_url(
+-                    youtube_url=video_url,
+-                    language=languages,
+-                    add_video_info=True,
+-                    continue_on_failure=True
+-                )
+-                # Load transcript and extract text
+-                documents = loader.load()
+-                if documents:
+-                    transcript_text = documents[0].page_content
++                transcript_text = fetch_transcript(video_url, languages)
++                if transcript_text:
+                     cleaned_content = clean_text(transcript_text)
+                     vector = embeddings.embed_documents(
+                         [cleaned_content],
+-                        task_type="retrieval_document"
++                        task_type="retrieval_document",
++                        output_dimensionality=768  # match the 768-dim table schema
+                     )[0]
+                     # Use provided metadata and add video metadata from document if available
+                     cleaned_metadata = {
+@@ -223,7 +226,8 @@ async def serve(read, write, options):
+             elif name == "search-transcripts":
+                 query_vector = embeddings.embed_query(
+                     arguments["query"],
+-                    task_type="retrieval_query"
++                    task_type="retrieval_query",
++                    output_dimensionality=768
+                 )
+                 results = videos_table.search(
+                     query_vector
+@@ -244,7 +248,7 @@ async def serve(read, write, options):
+                 
+         except Exception as e:
+             logger.error(f"Error handling tool call: {e}", exc_info=True)
+-            raise McpError(INVALID_PARAMS, str(e))
++            raise McpError(ErrorData(code=INVALID_PARAMS, message=str(e)))
+ 
+     # Create initialization options
+     options = server.create_initialization_options()
